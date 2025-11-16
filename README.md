@@ -8,6 +8,7 @@ Custom ComfyUI node pack under active development. This repo is the source of tr
   - `base/` contains shared helpers (`InfoFormatter`, `XtremetoolsBaseNode`)
   - `nodes/` ships custom nodes such as `XtremetoolsPromptJoiner` and `XtremetoolsTestNode`
 - `Docs/` – mirroring steps, best practices, and research notes pulled from official ComfyUI + XDEV references
+- `Docs/LM_STUDIO.md` – setup and troubleshooting instructions for the LM Studio integration
 - `tests/` – pytest suites that verify tuple outputs and registry wiring
 - `web/` – placeholder for future client assets; export `WEB_DIRECTORY` once populated
 
@@ -25,7 +26,7 @@ Custom ComfyUI node pack under active development. This repo is the source of tr
 5. Mirror to ComfyUI using the documented symlink (`Docs/MIRRORING.md`) and restart ComfyUI to reload nodes.
 
 ## Development Workflow
-- Implement new nodes inside `src/comfyui_xtremetools/nodes/` and derive from `XtremetoolsBaseNode` or `XtremetoolsUtilityNode`.
+- Implement new nodes inside `src/comfyui_xtremetools/nodes/` and derive from `XtremetoolsBaseNode`, `XtremetoolsUtilityNode`, or `LMStudioBaseNode` for HTTP-backed workflows.
 - Each module must provide `NODE_CLASS_MAPPINGS` and `NODE_DISPLAY_NAME_MAPPINGS`; the alias loader merges them for ComfyUI.
 - Emit info strings via `build_info()` and always return tuples using `ensure_tuple()` to satisfy ComfyUI’s contract.
 - Add/extend pytest coverage in `tests/` whenever nodes change; CI runs `python -m pytest` on pushes and pull requests.
