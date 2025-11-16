@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "comfyui-xtremetools"
+version = "0.1.0"
+description = "Custom node toolkit targeting ComfyUI workflows"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT License"}
+authors = [{name = "Xtremetools Maintainers"}]
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=9.0.1",
+]
+
+[tool.setuptools.packages.find]
+where = ["ComfyUI-Xtremetools/src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["ComfyUI-Xtremetools/src"]
+testpaths = ["tests"]
