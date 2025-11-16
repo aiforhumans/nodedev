@@ -1,41 +1,69 @@
-# ComfyUI-Xtremetools Workspace
+# ComfyUI-Xtremetools
 
-Custom ComfyUI node pack under active development. This repo is the source of truth for the package mirrored into `C:\ComfyUI_windows_portable\ComfyUI\custom_nodes\ComfyUI-Xtremetools`.
+Custom nodes, utilities, and research notes for ComfyUI workflows. This repository is the source of truth that should be symlinked or copied into `C:\ComfyUI_windows_portable\ComfyUI\custom_nodes\ComfyUI-Xtremetools` (see `Docs/MIRRORING.md`).
+
+## Highlights
+- **Shared foundations:** `base/` exposes InfoFormatter helpers, tuple-safe base nodes, and the `LMStudioBaseNode` HTTP client.
+- **Example + diagnostic nodes:** `XtremetoolsPromptJoiner`, `XtremetoolsTestNode`, and `XtremetoolsLMStudioText` demonstrate prompt utilities and LLM integration.
+- **Research-driven docs:** `Docs/BEST_PRACTICES.md`, `Docs/XDEV_NOTES.md`, and `Docs/LM_STUDIO.md` capture official guidance plus lessons learned from other node packs.
+- **Editable installs + CI:** `pyproject.toml` enables `pip install -e .[dev]`, and `.github/workflows/ci.yml` runs `pytest` on every push/PR.
 
 ## Repository Layout
-- `ComfyUI-Xtremetools/src/comfyui_xtremetools/` – Python package consumed by ComfyUI
-  - `alias.py` automatically loads every module under `nodes/`
-  - `base/` contains shared helpers (`InfoFormatter`, `XtremetoolsBaseNode`)
-  - `nodes/` ships custom nodes such as `XtremetoolsPromptJoiner` and `XtremetoolsTestNode`
-- `Docs/` – mirroring steps, best practices, and research notes pulled from official ComfyUI + XDEV references
-- `Docs/LM_STUDIO.md` – setup and troubleshooting instructions for the LM Studio integration
-- `tests/` – pytest suites that verify tuple outputs and registry wiring
-- `web/` – placeholder for future client assets; export `WEB_DIRECTORY` once populated
+```
+ComfyUI-Xtremetools/
+├── src/comfyui_xtremetools/
+│   ├── __init__.py          # re-exports alias loader
+│   ├── alias.py             # aggregates NODE_CLASS_MAPPINGS
+│   ├── base/
+│   │   ├── info.py          # InfoFormatter
+│   │   ├── node_base.py     # XtremetoolsBaseNode + Utility base
+│   │   └── lm_studio.py     # LMStudioBaseNode + HTTP helpers
+│   └── nodes/               # Custom nodes auto-discovered by alias
+├── Docs/                    # mirroring, best practices, LM Studio notes
+├── tests/                   # pytest suites (mocked LM Studio calls)
+└── web/                     # future client assets (export WEB_DIRECTORY when used)
+```
 
 ## Getting Started
-1. Clone the repository and ensure Python 3.10+ is available.
-2. Create/activate the workspace venv (recommended path `C:/nodedev/.venv`).
-3. Install dev dependencies:
+1. **Clone & venv**
    ```powershell
-   C:/nodedev/.venv/Scripts/python.exe -m pip install -e .[dev]
+   git clone <repo>
+   cd nodedev
+   python -m venv .venv
+   .\.venv\Scripts\activate
    ```
-4. Run tests:
+2. **Install dev dependencies**
    ```powershell
-   C:/nodedev/.venv/Scripts/python.exe -m pytest
+   python -m pip install -U pip
+   python -m pip install -e .[dev]
    ```
-5. Mirror to ComfyUI using the documented symlink (`Docs/MIRRORING.md`) and restart ComfyUI to reload nodes.
+3. **Run tests**
+   ```powershell
+   python -m pytest
+   ```
+4. **Mirror into ComfyUI** (requires elevated shell)
+   ```cmd
+   mklink /D "C:\ComfyUI_windows_portable\ComfyUI\custom_nodes\ComfyUI-Xtremetools" "C:\nodedev\ComfyUI-Xtremetools"
+   ```
+5. Restart ComfyUI to pick up the new/updated nodes.
 
-## Development Workflow
-- Implement new nodes inside `src/comfyui_xtremetools/nodes/` and derive from `XtremetoolsBaseNode`, `XtremetoolsUtilityNode`, or `LMStudioBaseNode` for HTTP-backed workflows.
-- Each module must provide `NODE_CLASS_MAPPINGS` and `NODE_DISPLAY_NAME_MAPPINGS`; the alias loader merges them for ComfyUI.
-- Emit info strings via `build_info()` and always return tuples using `ensure_tuple()` to satisfy ComfyUI’s contract.
-- Add/extend pytest coverage in `tests/` whenever nodes change; CI runs `python -m pytest` on pushes and pull requests.
-- Document architectural or workflow decisions under `Docs/` so contributors have historical context.
+## Contributing Nodes
+- Place new modules under `src/comfyui_xtremetools/nodes/` and extend `XtremetoolsBaseNode`, `XtremetoolsUtilityNode`, or `LMStudioBaseNode`.
+- Declare `CATEGORY`, `FUNCTION`, `RETURN_TYPES`, `RETURN_NAMES`, and implement `INPUT_TYPES`.
+- Always expose `NODE_CLASS_MAPPINGS`/`NODE_DISPLAY_NAME_MAPPINGS`; the alias loader stitches them together.
+- Use `build_info()` to emit emoji-friendly telemetry and `ensure_tuple()` to satisfy ComfyUI’s tuple contract.
+- Add or update pytest coverage (`tests/test_nodes.py`) to cover tuple outputs, registry entries, and LM Studio HTTP mocks.
+- Document noteworthy behavior under `Docs/` (especially LM Studio assumptions or new mirroring steps).
 
-## Releasing & Distribution
-- ComfyUI users can consume the repo by copying/symlinking `ComfyUI-Xtremetools/` into `ComfyUI/custom_nodes`.
-- `pyproject.toml` enables editable installs (`pip install -e .`) for linting/testing without the ComfyUI runtime.
-- Tag releases in GitHub once the node set and docs for a version are stable; publish release notes that highlight new nodes, breaking changes, and mirroring instructions.
+## LM Studio Integration
+- `base/lm_studio.py` wraps LM Studio’s `/v1/chat/completions` endpoint with error handling, latency tracking, and structured info outputs.
+- `nodes/lm_studio_text.py` provides a ready-to-use text generation node that accepts prompt/system/user text, temperature, max tokens, server URL, and optional model.
+- See `Docs/LM_STUDIO.md` for setup requirements, HTTP 400 troubleshooting (usually “model not loaded”), and future extension ideas (batching, streaming, model discovery).
+
+## Release Checklist
+1. Ensure `pytest` passes locally and in CI.
+2. Update READMEs/docs for any new nodes, dependencies, or workflows.
+3. Tag the repository and publish release notes summarizing new nodes, breaking changes, and mirroring reminders.
 
 ## License
-Released under the [MIT License](LICENSE). Contributions are welcome via pull requests following the repository’s testing and documentation guidelines.
+Distributed under the [MIT License](LICENSE). Contributions and issue reports are welcome.
