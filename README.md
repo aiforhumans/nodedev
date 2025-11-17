@@ -1,4 +1,4 @@
-# 🤖Xtremetools
+# Xtremetools
 
 Custom nodes, utilities, and research notes for ComfyUI workflows. This repository is the source of truth that should be symlinked or copied into `C:\ComfyUI_windows_portable\ComfyUI\custom_nodes\Xtremetools` (see `Docs/MIRRORING.md`).
 
