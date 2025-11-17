@@ -1,7 +1,7 @@
 # 🤖Xtremetools – AI Coding Guide
 
 ## Architecture Overview
-**Source of Truth:** `🤖Xtremetools/src/comfyui_xtremetools` (mirrored to `C:\ComfyUI_windows_portable\ComfyUI\custom_nodes\🤖Xtremetools` via symlink).
+**Source of Truth:** `Xtremetools/src/comfyui_xtremetools` (mirrored to `C:\ComfyUI_windows_portable\ComfyUI\custom_nodes\Xtremetools` via symlink).
 
 **Core Flow:** Node discovery (`alias.py`) → Base classes (`base/node_base.py`, `base/lm_studio.py`) → Specific nodes (`nodes/*.py`) → LM Studio backend for prompt engineering.
 
@@ -52,24 +52,26 @@ def execute(self, param1, param2):
 - `PromptWeighter`: SDXL-style `(term:weight)` parsing
 - `NegativePrompt`: topic/style constraints (lenient/moderate/strict)
 
-**HTTP Pattern:** `base/lm_studio.py` wraps `/v1/chat/completions`; mocks in tests use `_DummyResponse` (don't call real servers).
+**HTTP Pattern:** `base/lm_studio.py` wraps `/v1/chat/completions`; mocks in tests use `_DummyResponse` (don't call real servers). `.env` parsing + structured logging live in `config.py` and `logger.py` respectively.
 
 ## Meta-Workflow Generation
 Four nodes automate workflow creation from natural language:
 1. **WorkflowRequest** (`nodes/workflow_generator.py`): Structures user descriptions (type, complexity, required_nodes)
-2. **WorkflowGenerator**: Calls LM Studio with system prompt teaching node catalog; enforces JSON-only output; retry logic; injects `synthesize_links` + `auto_layout` toggles
-3. **WorkflowValidator** (`nodes/workflow_generator.py`): Checks link symmetry, orphaned nodes, fixes `last_node_id`/`last_link_id` counters
-4. **WorkflowExporter**: Formats output, injects metadata Note nodes, compact/pretty modes
+2. **WorkflowGenerator**: Calls LM Studio with schema-aware prompts, probes JSON-mode support via `generator.py`, retries when parsing fails, and clamps links via the live type registry.
+3. **WorkflowValidator** (`workflow_validator.py`): Pydantic-powered spec enforcement + auto-fix for `last_node_id`/`last_link_id` counters.
+4. **WorkflowExporter**: Formats output, injects metadata Note nodes, compact/pretty modes, and blocks exports if post-metadata validation fails.
+5. **Self-Check node / CLI**: Surfaces node counts, last `/object_info` timestamp, structured JSON activation, and the last validation outcome.
 
 **Post-processor** (`base/workflow_postprocessor.py`):
 - `WorkflowDAGLayout`: Topological ordering (configs left, processors middle, outputs right) + position assignment
-- `synthesize_links()`: Auto-creates links between nodes based on `NODE_PATTERNS` (e.g., StylePreset output → Joiner input)
+- `synthesize_links()`: Auto-creates links between nodes while checking the refreshed type registry for socket compatibility.
 
 **Settings in Generator:**
 - `auto_layout=true`: Topologically positions nodes (configs@100, processors@350, outputs@600)
-- `synthesize_links=true`: Auto-wires compatible node types
+- `synthesize_links=true`: Auto-wires compatible node types (validated via `type_registry.py`)
 - `retry_attempts`: 1–3 attempts with JSON repair on parse failure
-- `use_json_response_format=true`: Request `response_format: {"type": "json_object"}` for stricter LLM output
+- `use_json_response_format=true`: Requests `response_format: {"type": "json_object"}` only when the model appears in `config/supported_models.json`; otherwise falls back to parser mode and logs a warning.
+- Environment defaults (`COMFYUI_SERVER_URL`, `LM_STUDIO_SERVER_URL`, `LM_STUDIO_MODEL`, `XTREMETOOLS_SUPPORTED_MODELS`, `XTREMETOOLS_WORKFLOW_SCHEMA`) are read from `.env` via `config.py`.
 
 ## Testing Conventions
 **File:** `tests/test_nodes.py` (51 tests, all passing)
@@ -94,27 +96,32 @@ def test_style_preset():
 
 ## File Organization
 ```
-🤖Xtremetools/src/comfyui_xtremetools/
+Xtremetools/src/comfyui_xtremetools/
 ├── __init__.py           # re-exports alias
 ├── alias.py              # auto-discovery: loads nodes/, merges mappings
 ├── base/
 │   ├── info.py           # InfoFormatter (ASCII telemetry)
 │   ├── node_base.py      # XtremetoolsBaseNode, XtremetoolsUtilityNode
 │   ├── lm_studio.py      # LMStudioBaseNode, settings dataclasses, HTTP client
-│   └── workflow_postprocessor.py  # DAG layout, link synthesis
+│   └── workflow_postprocessor.py  # DAG layout, link synthesis with registry checks
+├── config.py / logger.py # .env + structured logging setup
+├── node_discovery.py     # Fetch `/object_info`, refresh registry, expose CLI helper
+├── type_registry.py      # Socket compatibility map + link guards
+├── workflow_validator.py # Pydantic-enforced workflow JSON spec
+├── generator.py          # Structured JSON guardrails + link clamping utilities
 └── nodes/                # Auto-discovered by alias
     ├── example_prompt_tool.py     # XtremetoolsPromptJoiner (template)
     ├── lm_studio_text.py          # Main LM Studio generation node
     ├── lm_studio_settings.py      # Three settings emitter nodes
     ├── lm_studio_prompt_helpers.py # 7 prompt engineering nodes
-    ├── test_node.py               # Diagnostics template
-    └── workflow_generator.py       # 4 meta-workflow nodes
+    ├── self_check.py              # Diagnostics node
+    └── workflow_generator.py      # Meta-workflow suite (request/generator/validator/exporter)
 ```
 
 ## Key Dependencies & Constraints
 - **Python:** ≥3.10 (f-strings, dataclass slots, type hints)
-- **ComfyUI:** Standard node interface (no external libs required; use stdlib only)
-- **No external packages** in production (requests, numpy, torch bundled by ComfyUI)
+- **ComfyUI:** Standard node interface
+- **Runtime deps:** Stdlib + `pydantic` for schema enforcement (remaining deps mocked in tests)
 - **Windows-specific paths:** Symlink setup (`Docs/MIRRORING.md`); use `Path` for cross-platform testing
 
 ## Documentation Ownership

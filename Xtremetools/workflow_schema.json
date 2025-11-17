@@ -1,0 +1,111 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/aiforhumans/nodedev/workflow-schema.json",
+  "title": "ComfyUIWorkflow",
+  "type": "object",
+  "required": [
+    "nodes",
+    "links",
+    "last_node_id",
+    "last_link_id"
+  ],
+  "properties": {
+    "version": {
+      "type": ["number", "string"],
+      "description": "ComfyUI workflow format version"
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "inputs", "outputs"],
+        "properties": {
+          "id": {"type": "integer", "minimum": 0},
+          "type": {"type": "string"},
+          "pos": {
+            "type": "array",
+            "items": {"type": "number"},
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "size": {
+            "type": "array",
+            "items": {"type": "number"},
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "flags": {"type": "object"},
+          "order": {"type": ["integer", "null"]},
+          "mode": {"type": ["integer", "null"]},
+          "properties": {"type": "object"},
+          "widgets_values": {"type": "array"},
+          "inputs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["name", "type"],
+              "properties": {
+                "name": {"type": "string"},
+                "type": {"type": ["string", "null"]},
+                "link": {"type": ["integer", "null"]}
+              }
+            }
+          },
+          "outputs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["name", "type"],
+              "properties": {
+                "name": {"type": "string"},
+                "type": {"type": ["string", "null"]},
+                "links": {
+                  "type": "array",
+                  "items": {"type": "integer"}
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "links": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "minItems": 6,
+        "maxItems": 6,
+        "items": [
+          {"type": "integer"},
+          {"type": "integer"},
+          {"type": "integer"},
+          {"type": "integer"},
+          {"type": "integer"},
+          {"type": "string"}
+        ]
+      }
+    },
+    "groups": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["title", "bounding"],
+        "properties": {
+          "title": {"type": "string"},
+          "bounding": {
+            "type": "array",
+            "items": {"type": "number"},
+            "minItems": 4,
+            "maxItems": 4
+          },
+          "color": {"type": "string"},
+          "font_size": {"type": "number"},
+          "flags": {"type": "object"}
+        }
+      }
+    },
+    "config": {"type": "object"},
+    "extra": {"type": "object"}
+  },
+  "additionalProperties": true
+}

@@ -1,12 +1,25 @@
 """Meta-workflow generation nodes for creating ComfyUI workflows dynamically."""
 
 import json
+from pathlib import Path
 from typing import Any
 
 from ..base.info import InfoFormatter
 from ..base.lm_studio import LMStudioBaseNode
 from ..base.node_base import XtremetoolsUtilityNode
 from ..base.workflow_postprocessor import post_process_workflow
+from ..config import get_environment_config
+from ..generator import clamp_links_to_registry, extract_first_json_block, model_supports_structured_json
+from ..logger import get_logger
+from ..node_discovery import refresh_type_registry
+from ..workflow_validator import validate_workflow_json
+
+LOGGER = get_logger("xtremetools.nodes.workflow_generator")
+_CONFIG = get_environment_config()
+try:
+    _SCHEMA_TEXT = Path(_CONFIG.workflow_schema_path).read_text(encoding="utf-8")
+except FileNotFoundError:
+    _SCHEMA_TEXT = "{}"
 
 
 class XtremetoolsWorkflowRequest(XtremetoolsUtilityNode):
@@ -352,342 +365,125 @@ Output MUST be raw JSON only (no fences, no prose)."""
         auto_layout: bool = True,
         synthesize_links: bool = True,
     ) -> tuple[str, str]:
-        """
-        Generate ComfyUI workflow JSON from a structured request.
-        
-        Args:
-            workflow_request: Structured request from WorkflowRequest node
-            server_settings: LM Studio server configuration
-            model_settings: LM Studio model configuration
-            temperature: Generation temperature (low for precise JSON)
-            max_tokens: Maximum tokens to generate
-            
-        Returns:
-            Tuple of (workflow_json, info_string)
-        """
+        """Generate ComfyUI workflow JSON from a structured request."""
+
         info = InfoFormatter("Workflow Generator")
+        refresh_type_registry()
 
-        try:
-            current_system_prompt = self.SYSTEM_PROMPT
-            workflow_json = "{}"
-            extraction_method = "none"
-            last_error: Exception | None = None
-            parsed: dict[str, Any] | None = None
-            result = None
+        server_url = server_settings.server_url or _CONFIG.lm_studio_server_url
+        model_name = model_settings.model or _CONFIG.lm_studio_model
 
-            def _extract_json_only(text: str) -> tuple[str, str]:
-                if text.startswith("{") and text.endswith("}"):
-                    return text, "raw"
-                if "```json" in text:
-                    start_marker = "```json"
-                    end_marker = "```"
-                    start_idx = text.find(start_marker)
-                    if start_idx != -1:
-                        start_idx += len(start_marker)
-                        end_idx = text.find(end_marker, start_idx)
-                        if end_idx != -1:
-                            return text[start_idx:end_idx].strip(), "fence"
-                first = text.find("{")
-                last = text.rfind("}")
-                if first != -1 and last != -1 and last > first:
-                    return text[first:last+1].strip(), "braces"
-                return '{"nodes": [], "links": []}', "fallback"
+        structured_supported = use_json_response_format and model_supports_structured_json(model_name)
+        response_format = {"type": "json_object"} if structured_supported else {"type": "text"}
+        info.add(f"Structured JSON mode: {'enabled' if structured_supported else 'fallback parsing'}")
 
-            for attempt in range(1, retry_attempts + 1):
-                system_prompt = current_system_prompt if attempt == 1 else current_system_prompt + f"\nRETRY {attempt}: STRICT JSON ONLY."
-                messages = self.build_messages(prompt=workflow_request, system_prompt=system_prompt)
+        base_system_prompt = self.SYSTEM_PROMPT
+        if structured_supported:
+            base_system_prompt += f"\nJSON SCHEMA (STRICT):\n{_SCHEMA_TEXT}\n"
+        else:
+            base_system_prompt += "\nIf structured mode fails, emit the best possible workflow JSON block so the parser can recover."
+
+        workflow_json = "{}"
+        extraction_method = "none"
+        last_error: Exception | None = None
+        parsed_payload: dict[str, Any] | None = None
+        result = None
+
+        for attempt in range(1, retry_attempts + 1):
+            system_prompt = base_system_prompt if attempt == 1 else base_system_prompt + f"\nRETRY {attempt}: STRICT JSON ONLY."
+            messages = self.build_messages(prompt=workflow_request, system_prompt=system_prompt)
+            try:
                 result = self.invoke_chat_completion(
                     messages=messages,
-                    server_url=server_settings.server_url,
-                    model=model_settings.model,
+                    server_url=server_url,
+                    model=model_name,
                     timeout=server_settings.timeout,
                     temperature=temperature,
                     max_tokens=max_tokens,
-                    response_format={"type": "json_object"} if use_json_response_format else {"type": "text"},
+                    response_format=response_format,
                 )
-                workflow_text = result.text.strip()
-                workflow_json, extraction_method = _extract_json_only(workflow_text)
-                try:
-                    parsed = json.loads(workflow_json)
-                    last_error = None
-                    break
-                except json.JSONDecodeError as e:
-                    last_error = e
-                    cleaned = workflow_json.strip().strip("`")
-                    if cleaned != workflow_json:
-                        try:
-                            parsed = json.loads(cleaned)
-                            workflow_json = cleaned
-                            extraction_method += "+trim"
-                            last_error = None
-                            break
-                        except json.JSONDecodeError as e2:
-                            last_error = e2
-                    # continue retry loop
+            except Exception as exc:  # pragma: no cover - network issues raised upstream
+                last_error = exc
+                LOGGER.error("LM Studio call failed: %s", exc)
+                continue
 
-            if result is None:
-                raise RuntimeError("No generation result captured")
-
-            if last_error is None and parsed is not None:
-                node_count = len(parsed.get("nodes", []))
-                link_count = len(parsed.get("links", []))
-                info.add("Status: OK Generated Successfully")
-                info.add(f"Nodes: {node_count}")
-                info.add(f"Links: {link_count}")
+            workflow_text = result.text.strip()
+            if structured_supported and response_format.get("type") == "json_object":
+                candidate = workflow_text
+                extraction_method = "structured"
             else:
-                info.add(f"Status: WARN JSON Parse Error after {retry_attempts} attempts: {str(last_error)[:120]}")
-                info.add("Warning: Workflow may need manual correction")
+                candidate, extraction_method = extract_first_json_block(workflow_text)
 
-            if len(workflow_json) > 100000:
-                workflow_json = workflow_json[:100000]
-                info.add("Warning: Output truncated due to size guard (100k chars)")
+            try:
+                parsed_payload = json.loads(candidate)
+                workflow_json = candidate
+                last_error = None
+                break
+            except json.JSONDecodeError as exc:
+                last_error = exc
+                LOGGER.warning("JSON decode failed (attempt %s): %s", attempt, exc)
+                if structured_supported:
+                    structured_supported = False
+                    response_format = {"type": "text"}
+                    info.add("Structured mode failed → falling back to parser path")
+                continue
 
-            # Apply post-processing: layout and link synthesis
-            if synthesize_links or auto_layout:
-                workflow_json = post_process_workflow(workflow_json, apply_layout=auto_layout, synthesize_links=synthesize_links)
-                if synthesize_links:
-                    info.add("Post-process: links synthesized")
-                if auto_layout:
-                    info.add("Post-process: DAG layout applied")
-
-            info.add(f"Extraction: {extraction_method}")
-            info.add("Strict JSON enforcement: applied")
-            info.add(f"Retry attempts used: {retry_attempts if last_error else parsed is not None and 1 or retry_attempts}")
-            info.add(f"Response format: {'json_object' if use_json_response_format else 'text'}")
-            if debug:
-                preview = workflow_json[:300].replace("\n", " ")
-                info.add(f"Debug Preview: {preview}...")
-
-            return self.ensure_tuple(workflow_json, info.render())
-
-        except Exception as e:
-            error_msg = f"Workflow generation failed: {str(e)}"
+        if result is None:
             info.add("Status: ERROR")
-            info.add(f"Error: {str(e)[:200]}")
+            info.add("No generation result captured")
             return self.ensure_tuple("{}", info.render())
+
+        if parsed_payload is None:
+            info.add("Status: ERROR")
+            info.add(f"Failed to parse workflow after {retry_attempts} attempts: {last_error}")
+            return self.ensure_tuple("{}", info.render())
+
+        node_count = len(parsed_payload.get("nodes", []))
+        link_count = len(parsed_payload.get("links", []))
+        info.add(f"Nodes: {node_count}")
+        info.add(f"Links: {link_count}")
+
+        processed = workflow_json
+        if synthesize_links or auto_layout:
+            processed = post_process_workflow(processed, apply_layout=auto_layout, synthesize_links=synthesize_links)
+        processed = clamp_links_to_registry(processed)
+
+        validation = validate_workflow_json(processed, auto_fix=True)
+        processed = validation.workflow_json
+        info.add(f"Validation: {'pass' if validation.is_valid else 'fail'}")
+        if validation.errors:
+            info.add(f"Errors: {len(validation.errors)}")
+        if validation.warnings:
+            info.add(f"Warnings: {len(validation.warnings)}")
+
+        info.add(f"Extraction: {extraction_method}")
+        info.add(f"Response format: {response_format.get('type')}")
+        if debug:
+            preview = processed[:300].replace("\n", " ")
+            info.add(f"Debug Preview: {preview}...")
+
+        return self.ensure_tuple(processed, info.render())
 
 
 class XtremetoolsWorkflowValidator(XtremetoolsUtilityNode):
-    """
-    Validates generated workflow JSON for structural correctness.
-    
-    Checks for:
-    - Valid JSON syntax
-    - Required fields (nodes, links, last_node_id, last_link_id)
-    - Node ID uniqueness
-    - Link reference validity
-    - Orphaned links
-    """
-
     CATEGORY = "🤖 Xtremetools/🔧 Meta-Workflow"
 
     @classmethod
     def INPUT_TYPES(cls) -> dict[str, Any]:
-        return {
-            "required": {
-                "workflow_json": ("STRING", {"forceInput": True}),
-            },
-        }
+        return {"required": {"workflow_json": ("STRING", {"forceInput": True})}}
 
     RETURN_TYPES = ("STRING", "BOOLEAN", "STRING")
     RETURN_NAMES = ("validation_report", "is_valid", "info")
     FUNCTION = "validate_workflow"
 
-    # Minimal internal schema description for structural expectations
-    _REQUIRED_TOP_LEVEL = ["nodes", "links", "last_node_id", "last_link_id"]
-    _NODE_REQUIRED_FIELDS = ["id", "type"]
-    _LINK_LENGTH = 6
-
-    def _collect_node_link_maps(self, nodes: list[dict]) -> tuple[dict[int, set[int]], dict[int, set[int]]]:
-        """Build maps of node id -> outgoing link ids, and node id -> incoming link ids."""
-        outgoing: dict[int, set[int]] = {}
-        incoming: dict[int, set[int]] = {}
-        for node in nodes:
-            node_id = node.get("id")
-            if isinstance(node_id, int):
-                # outputs
-                out_links: set[int] = set()
-                for out in node.get("outputs", []) or []:
-                    if isinstance(out, dict):
-                        for lid in out.get("links", []) or []:
-                            if isinstance(lid, int):
-                                out_links.add(lid)
-                outgoing[node_id] = out_links
-                # inputs
-                in_links: set[int] = set()
-                for inp in node.get("inputs", []) or []:
-                    if isinstance(inp, dict):
-                        lid = inp.get("link")
-                        if isinstance(lid, int):
-                            in_links.add(lid)
-                incoming[node_id] = in_links
-        return outgoing, incoming
-
     def validate_workflow(self, workflow_json: str) -> tuple[str, bool, str]:
-        """
-        Validate workflow JSON structure and references.
-        
-        Args:
-            workflow_json: JSON string to validate
-            
-        Returns:
-            Tuple of (validation_report, is_valid, info_string)
-        """
+        result = validate_workflow_json(workflow_json, auto_fix=True)
         info = InfoFormatter("Workflow Validator")
-        issues = []
-        warnings = []
-
-        # Check if empty
-        if not workflow_json or workflow_json.strip() == "{}":
-            issues.append("Empty workflow JSON")
-            info.add("Status: ERROR Invalid")
-            info.add("Issues: 1")
-            return self.ensure_tuple("\n".join(issues), False, info.render())
-
-        # Parse JSON
-        try:
-            workflow = json.loads(workflow_json)
-        except json.JSONDecodeError as e:
-            issues.append(f"JSON parse error: {str(e)}")
-            info.add("Status: ERROR Invalid JSON")
-            info.add(f"Error: {str(e)[:100]}")
-            return self.ensure_tuple("\n".join(issues), False, info.render())
-
-        # Check required top-level fields (schema)
-        for field in self._REQUIRED_TOP_LEVEL:
-            if field not in workflow:
-                issues.append(f"Missing required field: '{field}'")
-
-        # Validate nodes
-        nodes = workflow.get("nodes", [])
-        if not isinstance(nodes, list):
-            issues.append("'nodes' must be an array")
-        else:
-            node_ids = set()
-            for idx, node in enumerate(nodes):
-                if not isinstance(node, dict):
-                    issues.append(f"Node {idx}: Not a valid object")
-                    continue
-
-                if "id" not in node:
-                    issues.append(f"Node {idx}: Missing 'id' field")
-                else:
-                    node_id = node["id"]
-                    if node_id in node_ids:
-                        issues.append(f"Node {node_id}: Duplicate node ID")
-                    node_ids.add(node_id)
-
-                if "type" not in node:
-                    issues.append(f"Node {node.get('id', idx)}: Missing 'type' field")
-
-                if "pos" not in node:
-                    warnings.append(
-                        f"Node {node.get('id', idx)}: Missing 'pos' (position)"
-                    )
-
-        # Validate links basic structure
-        links = workflow.get("links", [])
-        if not isinstance(links, list):
-            issues.append("'links' must be an array")
-        else:
-            link_ids = set()
-            for link in links:
-                if not isinstance(link, list) or len(link) != self._LINK_LENGTH:
-                    issues.append(f"Invalid link format: {link}")
-                    continue
-
-                link_id, source_id, source_out, target_id, target_in, link_type = link
-
-                # Check duplicate link IDs
-                if link_id in link_ids:
-                    issues.append(f"Link {link_id}: Duplicate link ID")
-                link_ids.add(link_id)
-
-                # Check node references
-                if nodes and isinstance(nodes, list):
-                    if source_id not in node_ids:
-                        issues.append(
-                            f"Link {link_id}: References non-existent source node {source_id}"
-                        )
-                    if target_id not in node_ids:
-                        issues.append(
-                            f"Link {link_id}: References non-existent target node {target_id}"
-                        )
-
-        # Check last_node_id consistency & auto-fix suggestion
-        if nodes and isinstance(nodes, list) and node_ids:
-            expected_last_node_id = max(node_ids)
-            actual_last_node_id = workflow.get("last_node_id", 0)
-            if actual_last_node_id < expected_last_node_id:
-                warnings.append(
-                    f"last_node_id ({actual_last_node_id}) is less than highest node ID ({expected_last_node_id})"
-                )
-                workflow["last_node_id"] = expected_last_node_id  # auto-fix
-                warnings.append("Applied auto-fix: last_node_id updated")
-
-        # Check last_link_id consistency & auto-fix suggestion
-        if links and isinstance(links, list) and link_ids:
-            expected_last_link_id = max(link_ids)
-            actual_last_link_id = workflow.get("last_link_id", 0)
-            if actual_last_link_id < expected_last_link_id:
-                warnings.append(
-                    f"last_link_id ({actual_last_link_id}) is less than highest link ID ({expected_last_link_id})"
-                )
-                workflow["last_link_id"] = expected_last_link_id  # auto-fix
-                warnings.append("Applied auto-fix: last_link_id updated")
-
-        # Link symmetry validation
-        if not issues:
-            outgoing_map, incoming_map = self._collect_node_link_maps(nodes if isinstance(nodes, list) else [])
-            for link in links if isinstance(links, list) else []:
-                if not (isinstance(link, list) and len(link) == self._LINK_LENGTH):
-                    continue
-                link_id, source_id, _source_out_idx, target_id, _target_in_idx, _type = link
-                if isinstance(source_id, int) and link_id not in outgoing_map.get(source_id, set()):
-                    issues.append(f"Link {link_id}: not listed in source node {source_id} outputs")
-                if isinstance(target_id, int) and link_id not in incoming_map.get(target_id, set()):
-                    issues.append(f"Link {link_id}: not listed in target node {target_id} inputs")
-
-        # Unknown node type warnings (non-fatal)
-        from comfyui_xtremetools.alias import NODE_CLASS_MAPPINGS as _REGISTRY  # local import to avoid cycles
-        for node in nodes if isinstance(nodes, list) else []:
-            ntype = node.get("type")
-            if isinstance(ntype, str) and ntype not in _REGISTRY:
-                warnings.append(f"Unknown node type: {ntype}")
-
-        # Build report
-        report_parts = ["WORKFLOW VALIDATION REPORT", "=" * 50, ""]
-
-        if not issues and not warnings:
-            report_parts.append("OK VALID - No issues found")
-            is_valid = True
-            info.add("Status: OK Valid")
-        else:
-            is_valid = len(issues) == 0
-
-            if issues:
-                report_parts.append(f"ERRORS ({len(issues)}):")
-                for issue in issues:
-                    report_parts.append(f"  ERROR: {issue}")
-                report_parts.append("")
-
-            if warnings:
-                report_parts.append(f"WARNINGS ({len(warnings)}):")
-                for warning in warnings:
-                    report_parts.append(f"  WARN: {warning}")
-                report_parts.append("")
-
-            status = "WARN Valid with warnings" if is_valid else "ERROR Invalid"
-            report_parts.append(f"STATUS: {status}")
-            info.add(f"Status: {status}")
-
-        info.add(f"Nodes Checked: {len(nodes)}")
-        info.add(f"Links Checked: {len(links)}")
-        info.add(f"Errors: {len(issues)}")
-        info.add(f"Warnings: {len(warnings)}")
-
-        report = "\n".join(report_parts)
-        return self.ensure_tuple(report, is_valid, info.render())
+        status = "OK" if result.is_valid else "ERROR"
+        info.add(f"Status: {status}")
+        info.add(f"Errors: {len(result.errors)}")
+        info.add(f"Warnings: {len(result.warnings)}")
+        return self.ensure_tuple(result.report, result.is_valid, info.render())
 
 
 class XtremetoolsWorkflowExporter(XtremetoolsUtilityNode):
@@ -749,9 +545,15 @@ class XtremetoolsWorkflowExporter(XtremetoolsUtilityNode):
         """
         info = InfoFormatter("Workflow Exporter")
 
+        validation = validate_workflow_json(workflow_json, auto_fix=True)
+        if not validation.is_valid:
+            info.add("Status: ERROR")
+            info.add("Export blocked: validation failed")
+            return self.ensure_tuple(validation.report, info.render())
+
         try:
             # Parse JSON
-            workflow = json.loads(workflow_json)
+            workflow = json.loads(validation.workflow_json)
 
             # Add metadata if requested
             if add_metadata:
@@ -805,7 +607,19 @@ class XtremetoolsWorkflowExporter(XtremetoolsUtilityNode):
             info.add(f"Metadata Added: {'Yes' if add_metadata else 'No'}")
             info.add("Ready for Export: Copy from ShowText node")
 
-            return self.ensure_tuple(formatted, info.render())
+            # Final validation after metadata injection to ensure schema compliance
+            final_validation = validate_workflow_json(formatted, auto_fix=True)
+            if not final_validation.is_valid:
+                info.add("Status: ERROR")
+                info.add("Export blocked after metadata injection")
+                return self.ensure_tuple(final_validation.report, info.render())
+            final_payload = json.loads(final_validation.workflow_json)
+            if indent == 0:
+                final_output = json.dumps(final_payload, ensure_ascii=False)
+            else:
+                final_output = json.dumps(final_payload, indent=indent if not compact else None, ensure_ascii=False)
+
+            return self.ensure_tuple(final_output, info.render())
 
         except json.JSONDecodeError as e:
             error_msg = f"JSON parse error: {str(e)}"

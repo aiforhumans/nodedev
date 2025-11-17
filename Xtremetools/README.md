@@ -1,6 +1,6 @@
-# 🤖Xtremetools
+# Xtremetools
 
-Workspace for custom ComfyUI nodes. Keep this directory mirrored with `C:\ComfyUI_windows_portable\ComfyUI\custom_nodes\🤖Xtremetools` for live testing.
+Workspace for custom ComfyUI nodes. Keep this directory mirrored with `C:\ComfyUI_windows_portable\ComfyUI\custom_nodes\Xtremetools` for live testing and avoid emoji/non-ASCII folder names.
 
 ## Package layout
 - `src/comfyui_xtremetools/` – Python package copied into `ComfyUI/custom_nodes`
@@ -12,11 +12,11 @@ Workspace for custom ComfyUI nodes. Keep this directory mirrored with `C:\ComfyU
 
 ## Bootstrap & testing
 1. Create or reuse your Python venv (see repo root `.venv`).
-2. From `🤖Xtremetools`, install dependencies as you add them (currently stdlib only).
+2. From `Xtremetools`, install dependencies as you add them (currently stdlib + Pydantic).
 3. Run lightweight checks: `C:/nodedev/.venv/Scripts/python.exe -m pytest` (tests folder TBD).
-4. Mirror to ComfyUI once new nodes exist. Symlink example:
+4. Mirror to ComfyUI once new nodes exist. Symlink example (run as Administrator):
 	 ```cmd
-	 mklink /D "C:\ComfyUI_windows_portable\ComfyUI\custom_nodes\🤖Xtremetools" "C:\nodedev\🤖Xtremetools"
+	 mklink /D "C:\ComfyUI_windows_portable\ComfyUI\custom_nodes\Xtremetools" "C:\nodedev\Xtremetools"
 	 ```
 
 ## Next steps

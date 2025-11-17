@@ -1,6 +1,6 @@
 # 🤖Xtremetools
 
-Custom nodes, utilities, and research notes for ComfyUI workflows. This repository is the source of truth that should be symlinked or copied into `C:\ComfyUI_windows_portable\ComfyUI\custom_nodes\🤖Xtremetools` (see `Docs/MIRRORING.md`).
+Custom nodes, utilities, and research notes for ComfyUI workflows. This repository is the source of truth that should be symlinked or copied into `C:\ComfyUI_windows_portable\ComfyUI\custom_nodes\Xtremetools` (see `Docs/MIRRORING.md`).
 
 ## Highlights
 - **Shared foundations:** `base/` exposes InfoFormatter helpers, tuple-safe base nodes, and the `LMStudioBaseNode` HTTP client.
@@ -11,7 +11,7 @@ Custom nodes, utilities, and research notes for ComfyUI workflows. This reposito
 
 ## Repository Layout
 ```
-🤖Xtremetools/
+Xtremetools/
 ├── src/comfyui_xtremetools/
 │   ├── __init__.py          # re-exports alias loader
 │   ├── alias.py             # aggregates NODE_CLASS_MAPPINGS
@@ -27,10 +27,12 @@ Custom nodes, utilities, and research notes for ComfyUI workflows. This reposito
 
 ## Code Module Guide
 - **Alias + Registration (`src/comfyui_xtremetools/__init__.py`, `alias.py`)**: Auto-discovers everything under `nodes/` and merges their `NODE_CLASS_MAPPINGS`/`NODE_DISPLAY_NAME_MAPPINGS`, so adding a node never requires manual registry edits.
+- **Environment + Logging (`config.py`, `logger.py`)**: Loads `.env` settings (ComfyUI URL, LM Studio URL/model, schema/config paths) and exposes structured logging helpers with timestamped output.
+- **Type Discovery (`node_discovery.py`, `type_registry.py`, `scripts/refresh_types.py`)**: Fetches live `/object_info` on startup, builds a socket compatibility map, exposes a `Refresh Types` CLI command, and records the last fetch timestamp for diagnostics.
 - **Base Layer (`base/`)**: `info.py` houses the ASCII-only `InfoFormatter`; `node_base.py` provides `XtremetoolsBaseNode`, `XtremetoolsUtilityNode`, and helpers like `ensure_tuple()`; `lm_studio.py` wraps `/v1/chat/completions`, defines the three LM Studio settings dataclasses, and centralizes HTTP retries/error handling; `workflow_postprocessor.py` performs DAG layout, auto-link synthesis, and metadata injection.
 - **LM Studio Runtime Nodes (`nodes/lm_studio_*.py`)**: `lm_studio_settings.py` emits server/model/generation settings; `lm_studio_text.py` consumes prompts, optional helper outputs, and settings objects to call LM Studio through the shared base.
 - **Prompt Engineering Helpers (`nodes/lm_studio_prompt_helpers.py`)**: Seven micro-nodes (StylePreset, PromptWeighter, DualPrompt, QualityControl, NegativePrompt, FewShotExamples, StructuredOutput) each return deterministic prompt fragments plus telemetry, letting graphs express personas, weighting, constraints, and formatting rules.
-- **Workflow Automation (`nodes/workflow_generator.py`)**: Hosts WorkflowRequest, WorkflowGenerator, WorkflowValidator, and WorkflowExporter. Generator drives LM Studio with JSON-only prompts and retry logic; Validator repairs IDs/links; Exporter formats + annotates final JSON. These nodes call into `workflow_postprocessor` so code paths stay shared with standalone scripts.
+- **Workflow Automation (`nodes/workflow_generator.py`, `workflow_validator.py`, `generator.py`)**: Hosts WorkflowRequest, WorkflowGenerator, WorkflowValidator, WorkflowExporter, and the new Self-Check diagnostic node. Generator now probes JSON-mode support, injects the JSON schema, retries with stricter prompts, and clamps links based on the live type registry before handing outputs to the shared validator. The dedicated validator module uses Pydantic + `workflow_schema.json` to auto-fix counters and block invalid exports.
 - **Diagnostics + Utilities (`nodes/example_prompt_tool.py`, `nodes/test_node.py`, etc.)**: Provide lightweight string/prompt utilities and testing surfaces to validate tuple contracts.
 - **Testing Stack (`tests/`)**: `conftest.py` wires fake LM Studio servers and snapshot helpers; `tests/test_nodes.py` covers individual nodes; `tests/mcp/` contains the MCP harness (`harness.py`), schema snapshot tests, and end-to-end workflow assertions; `tests/snapshot_utils.py` handles deterministic JSON writes.
 - **Documentation (`Docs/`)**: `BEST_PRACTICES` catalogs node requirements, `LM_STUDIO` details integration patterns, `MIRRORING` explains the ComfyUI symlink workflow, and `XDEV_NOTES` captures research/competitive analysis.
@@ -54,9 +56,18 @@ Custom nodes, utilities, and research notes for ComfyUI workflows. This reposito
    ```
 4. **Mirror into ComfyUI** (requires elevated shell)
    ```cmd
-   mklink /D "C:\ComfyUI_windows_portable\ComfyUI\custom_nodes\🤖Xtremetools" "C:\nodedev\🤖Xtremetools"
+   mklink /D "C:\ComfyUI_windows_portable\ComfyUI\custom_nodes\Xtremetools" "C:\nodedev\Xtremetools"
    ```
+   > **Important:** Run the command from an Administrator shell and keep both source/target folder names ASCII-only. Emoji paths can cause ComfyUI to skip discovery.
 5. Restart ComfyUI to pick up the new/updated nodes.
+
+### Environment Variables (.env)
+- Copy `.env.example` (or create `.env`) and set:
+  - `COMFYUI_SERVER_URL` – URL for `/object_info` fetches (default `http://localhost:8188`).
+  - `LM_STUDIO_SERVER_URL` / `LM_STUDIO_MODEL` – defaults injected into LM Studio nodes when graph inputs are omitted.
+  - `XTREMETOOLS_SUPPORTED_MODELS` – path to `supported_models.json` for structured JSON guardrails.
+  - `XTREMETOOLS_WORKFLOW_SCHEMA` – path to `workflow_schema.json` if you relocate it.
+- Environment values feed the discovery service, LM Studio generator, validator, and diagnostics automatically.
 
 ## Contributing Nodes
 - Place new modules under `src/comfyui_xtremetools/nodes/` and extend `XtremetoolsBaseNode`, `XtremetoolsUtilityNode`, or `LMStudioBaseNode`.
@@ -65,6 +76,7 @@ Custom nodes, utilities, and research notes for ComfyUI workflows. This reposito
 - Use `build_info()` to emit emoji-friendly telemetry and `ensure_tuple()` to satisfy ComfyUI’s tuple contract.
 - Add or update pytest coverage (`tests/test_nodes.py`) to cover tuple outputs, registry entries, and LM Studio HTTP mocks.
 - Document noteworthy behavior under `Docs/` (especially LM Studio assumptions or new mirroring steps).
+- Run `python scripts/refresh_types.py` whenever new ComfyUI build adds sockets—this repopulates the type registry used during auto-link synthesis.
 
 ## LM Studio Integration
 - `base/lm_studio.py` wraps LM Studio's `/v1/chat/completions` endpoint with error handling, latency tracking, and structured info outputs. It now exposes dataclasses (`LMStudioServerSettings`, `LMStudioModelSettings`, `LMStudioGenerationSettings`) that travel through Comfy graphs.
@@ -83,6 +95,11 @@ Custom nodes, utilities, and research notes for ComfyUI workflows. This reposito
   - `XtremetoolsLMStudioStructuredOutput` → explicit format instructions (XML/JSON/Markdown) with optional chain-of-thought reasoning.
 - See `Docs/LM_STUDIO.md` for workflow patterns (few-shot learning, structured output, quality control), setup requirements, and HTTP 400 troubleshooting.
 
+### Structured JSON Guardrails
+- `config/supported_models.json` tracks which models honor `response_format="json_object"`. When the active model is absent, the generator automatically falls back to a robust parser and logs `"Model <name> not whitelisted..."`.
+- `workflow_schema.json` is injected into the generator system prompt and enforced again via the shared validator before exports/imports.
+- A new fallback parser extracts the first JSON block when models return markdown or mixed prose, and retries use progressively stricter instructions.
+
 ## Release Checklist
 1. Ensure `pytest` passes locally and in CI.
 2. Update READMEs/docs for any new nodes, dependencies, or workflows.
@@ -93,13 +110,14 @@ Custom nodes, utilities, and research notes for ComfyUI workflows. This reposito
 The meta-workflow stack turns natural-language briefs into validated ComfyUI workflows by chaining four AI-assisted nodes:
 
 - **XtremetoolsWorkflowRequest**: Structures user descriptions into formal generation requests with complexity, node requirements, and output format specifications.
-- **XtremetoolsWorkflowGenerator (AI)**: Invokes LM Studio to synthesize ComfyUI workflow JSON, with retry logic, deterministic JSON-only output enforcement, and automatic DAG layout + link synthesis.
+- **XtremetoolsWorkflowGenerator (AI)**: Invokes LM Studio to synthesize ComfyUI workflow JSON, probes JSON-structured support per model, injects the official schema, retries with stronger prompts, and clamps type-incompatible links via the live registry.
    - Set `use_json_response_format: true` for stricter, more deterministic outputs.
    - Set `synthesize_links: true` (default) to auto-create links between nodes based on type compatibility.
    - Set `auto_layout: true` (default) to assign positions and organize nodes topologically (configs left, processors middle, outputs right).
    - Use `retry_attempts` to harden prompt and re-invoke on JSON parse failures.
-- **XtremetoolsWorkflowValidator**: Validates generated workflows for structural correctness—detects orphaned links, duplicate node IDs, missing required fields, and applies auto-fixes to `last_node_id`/`last_link_id` counters.
-- **XtremetoolsWorkflowExporter**: Formats and exports workflows with optional metadata injection, Note node generation, and compact/pretty-print modes.
+- **XtremetoolsWorkflowValidator**: Uses Pydantic + the JSON schema to validate or auto-fix top-level counters, reporting warnings/errors back to nodes and CLI.
+- **XtremetoolsWorkflowExporter**: Validates before/after metadata injection; if the workflow fails schema checks it blocks export and surfaces the validator report instead of returning malformed JSON.
+- **XtremetoolsSelfCheck**: Emits diagnostics (node count, last `/object_info` fetch timestamp, structured JSON mode flag, last export validation result) so graphs can display system health inline.
 
 ### What We Are Trying to Get
 - Repeatable workflows that match the request genre (text-only, SDXL hybrid, multi-shot reasoning) without manual editing.
@@ -113,6 +131,7 @@ The meta-workflow stack turns natural-language briefs into validated ComfyUI wor
 - **Composable adapters:** LM Studio calls flow through `LMStudioBaseNode` so tests can substitute fake servers and capture transcripts.
 - **Guardrail-driven prompts:** System prompts pin response_format to JSON and describe node catalogs; generator code injects defaults (layout, link synthesis) and retries on parse failure.
 - **Post-processing first-class:** After generation, `post_process_workflow` reorders nodes via DAG layout and reconciles IDs before exporter packaging.
+- **Schema-first exports:** The validator sits on the import/export boundary—invalid graphs never reach disk, and the note log explains all auto-fixes.
 
 ### Example Meta-Workflow Pattern
 

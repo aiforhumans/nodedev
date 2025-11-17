@@ -4,6 +4,8 @@ from __future__ import annotations
 import json
 from typing import Any
 
+from ..node_discovery import get_type_registry
+
 
 class WorkflowDAGLayout:
     """Applies topological layout to workflow nodes based on connection patterns."""
@@ -88,6 +90,7 @@ class WorkflowDAGLayout:
         nodes_map = WorkflowDAGLayout.build_node_map(workflow)
         next_link_id = max((link[0] for link in workflow.get("links", []) if isinstance(link, list)), default=0) + 1
         new_links = list(workflow.get("links", []))
+        registry = get_type_registry()
 
         for node_id, node in nodes_map.items():
             node_type = node.get("type", "")
@@ -113,10 +116,8 @@ class WorkflowDAGLayout:
                     for output_idx, output_spec in enumerate(outputs):
                         output_type = output_spec.get("type")
 
-                        # Match based on type
-                        if (input_type == output_type or
-                            input_type == "STRING" or
-                            (input_type is None and output_type == "STRING")):
+                        # Match based on registry compatibility
+                        if registry.is_link_allowed(output_type or "STRING", input_type or "STRING"):
                             # Create link
                             link_id = next_link_id
                             new_links.append([link_id, other_id, output_idx, node_id, input_idx, output_type or "STRING"])

@@ -1,0 +1,9 @@
+{
+  "structured_json_capable": [
+    "ggml-model-q4_k.gguf",
+    "xtremetools-json-1.0",
+    "openhermes-2.5-mistral"
+  ],
+  "last_updated": "2025-11-17",
+  "notes": "Add models here once they have been verified to respect response_format=json_object."
+}

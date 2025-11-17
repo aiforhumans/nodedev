@@ -10,7 +10,9 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT License"}
 authors = [{name = "Xtremetools Maintainers"}]
-dependencies = []
+dependencies = [
+    "pydantic>=2.8",
+]
 
 [project.optional-dependencies]
 dev = [
@@ -18,10 +20,10 @@ dev = [
 ]
 
 [tool.setuptools.packages.find]
-where = ["🤖Xtremetools/src"]
+where = ["Xtremetools/src"]
 
 [tool.pytest.ini_options]
-pythonpath = ["🤖Xtremetools/src"]
+pythonpath = ["Xtremetools/src"]
 testpaths = ["tests"]
 markers = [
     "mcp: Marks tests that exercise the MCP harness; opt-in for slower suites",
