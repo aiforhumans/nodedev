@@ -1,0 +1,46 @@
+{
+  "category": "\ud83e\udd16 Xtremetools/\ud83e\uddea Diagnostics",
+  "function": "emit",
+  "inputs": {
+    "optional": {
+      "delimiter": [
+        "STRING",
+        {
+          "default": " "
+        }
+      ],
+      "uppercase": [
+        "BOOLEAN",
+        {
+          "default": false
+        }
+      ]
+    },
+    "required": {
+      "repeat_count": [
+        "INT",
+        {
+          "default": 1,
+          "max": 5,
+          "min": 1
+        }
+      ],
+      "text": [
+        "STRING",
+        {
+          "default": "Xtremetools test node",
+          "multiline": true
+        }
+      ]
+    }
+  },
+  "name": "XtremetoolsTestNode",
+  "return_names": [
+    "text",
+    "info"
+  ],
+  "return_types": [
+    "STRING",
+    "STRING"
+  ]
+}

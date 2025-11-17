@@ -1,0 +1,188 @@
+{
+  "last_node_id": 5,
+  "last_link_id": 7,
+  "nodes": [
+    {
+      "id": 0,
+      "type": "XtremetoolsLMStudioServerSettings",
+      "pos": [100, 100],
+      "size": [200, 100],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "server_settings",
+          "type": "LM_STUDIO_SERVER",
+          "links": [0]
+        }
+      ],
+      "properties": {},
+      "widgets_values": ["http://localhost:1234", 60]
+    },
+    {
+      "id": 1,
+      "type": "XtremetoolsLMStudioModelSettings",
+      "pos": [100, 250],
+      "size": [200, 100],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "model_settings",
+          "type": "LM_STUDIO_MODEL",
+          "links": [1]
+        }
+      ],
+      "properties": {},
+      "widgets_values": ["phi-3", false]
+    },
+    {
+      "id": 2,
+      "type": "XtremetoolsLMStudioQualityControl",
+      "pos": [350, 100],
+      "size": [200, 100],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "temperature",
+          "type": "FLOAT",
+          "links": [2]
+        },
+        {
+          "name": "max_tokens",
+          "type": "INT",
+          "links": [3]
+        }
+      ],
+      "properties": {},
+      "widgets_values": ["creative_verbose", 0.2, 50]
+    },
+    {
+      "id": 3,
+      "type": "XtremetoolsLMStudioNegativePrompt",
+      "pos": [350, 250],
+      "size": [200, 100],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "negative_instruction",
+          "type": "STRING",
+          "links": [4]
+        }
+      ],
+      "properties": {},
+      "widgets_values": ["clichés, generic phrases", "verbose, flowery", "moderate"]
+    },
+    {
+      "id": 4,
+      "type": "XtremetoolsLMStudioText",
+      "pos": [650, 100],
+      "size": [250, 150],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "server_settings",
+          "type": "LM_STUDIO_SERVER",
+          "link": 0
+        },
+        {
+          "name": "model_settings",
+          "type": "LM_STUDIO_MODEL",
+          "link": 1
+        },
+        {
+          "name": "user_prompt",
+          "type": "STRING",
+          "link": 4
+        },
+        {
+          "name": "system_prompt",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "temperature",
+          "type": "FLOAT",
+          "link": 2
+        },
+        {
+          "name": "max_tokens",
+          "type": "INT",
+          "link": 3
+        }
+      ],
+      "outputs": [
+        {
+          "name": "generated_text",
+          "type": "STRING",
+          "links": [5]
+        },
+        {
+          "name": "info",
+          "type": "STRING",
+          "links": [6]
+        }
+      ],
+      "properties": {},
+      "widgets_values": ["", "", "Describe a serene forest scene", "", 0.8, 128]
+    },
+    {
+      "id": 5,
+      "type": "ShowText|pysssss",
+      "pos": [950, 100],
+      "size": [300, 150],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "link": 5
+        }
+      ],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": ["Creative Output with Quality Control"]
+    }
+  ],
+  "groups": [
+    {
+      "title": "Configuration",
+      "bounding": [100, 100, 200, 250],
+      "color": "#3f789e",
+      "font_size": 20
+    },
+    {
+      "title": "Quality & Constraints",
+      "bounding": [350, 100, 200, 250],
+      "color": "#5a7f2f",
+      "font_size": 20
+    },
+    {
+      "title": "Generation",
+      "bounding": [650, 100, 250, 150],
+      "color": "#8b5a2b",
+      "font_size": 20
+    }
+  ],
+  "config": {},
+  "extra": {
+    "generated_by": "Xtremetools",
+    "generator_version": "1.0",
+    "description": "Quality control workflow: demonstrates creative parameter tuning and negative prompt constraints"
+  },
+  "version": 0.4
+}

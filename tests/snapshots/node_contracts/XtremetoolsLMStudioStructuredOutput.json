@@ -1,0 +1,48 @@
+{
+  "category": "\ud83e\udd16 Xtremetools/\ud83e\udd16 LM Studio/\u270d\ufe0f Prompts",
+  "function": "build_format_instruction",
+  "inputs": {
+    "optional": {
+      "custom_format": [
+        "STRING",
+        {
+          "default": "",
+          "multiline": true
+        }
+      ],
+      "include_thinking": [
+        "BOOLEAN",
+        {
+          "default": false
+        }
+      ],
+      "xml_tag_name": [
+        "STRING",
+        {
+          "default": "answer"
+        }
+      ]
+    },
+    "required": {
+      "output_format": [
+        [
+          "xml",
+          "json",
+          "markdown",
+          "numbered_list",
+          "bullet_points",
+          "custom"
+        ]
+      ]
+    }
+  },
+  "name": "XtremetoolsLMStudioStructuredOutput",
+  "return_names": [
+    "format_instruction",
+    "info"
+  ],
+  "return_types": [
+    "STRING",
+    "STRING"
+  ]
+}

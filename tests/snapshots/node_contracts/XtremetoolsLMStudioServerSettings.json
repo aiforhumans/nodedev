@@ -1,0 +1,32 @@
+{
+  "category": "\ud83e\udd16 Xtremetools/\ud83e\udd16 LM Studio/\u2699\ufe0f Settings",
+  "function": "build_server_settings",
+  "inputs": {
+    "optional": {},
+    "required": {
+      "server_url": [
+        "STRING",
+        {
+          "default": "http://localhost:1234"
+        }
+      ],
+      "timeout_seconds": [
+        "FLOAT",
+        {
+          "default": 60.0,
+          "max": 300.0,
+          "min": 1.0
+        }
+      ]
+    }
+  },
+  "name": "XtremetoolsLMStudioServerSettings",
+  "return_names": [
+    "server_settings",
+    "info"
+  ],
+  "return_types": [
+    "LM_STUDIO_SERVER",
+    "STRING"
+  ]
+}

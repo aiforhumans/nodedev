@@ -1,0 +1,30 @@
+{
+  "category": "\ud83e\udd16 Xtremetools/\ud83e\udd16 LM Studio/\u2699\ufe0f Settings",
+  "function": "build_model_settings",
+  "inputs": {
+    "optional": {},
+    "required": {
+      "fallback_to_default": [
+        "BOOLEAN",
+        {
+          "default": true
+        }
+      ],
+      "model": [
+        "STRING",
+        {
+          "default": ""
+        }
+      ]
+    }
+  },
+  "name": "XtremetoolsLMStudioModelSettings",
+  "return_names": [
+    "model_settings",
+    "info"
+  ],
+  "return_types": [
+    "LM_STUDIO_MODEL",
+    "STRING"
+  ]
+}

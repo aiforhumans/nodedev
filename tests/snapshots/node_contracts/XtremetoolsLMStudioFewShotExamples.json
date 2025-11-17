@@ -1,0 +1,67 @@
+{
+  "category": "\ud83e\udd16 Xtremetools/\ud83e\udd16 LM Studio/\u270d\ufe0f Prompts",
+  "function": "build_examples",
+  "inputs": {
+    "optional": {
+      "example_2_input": [
+        "STRING",
+        {
+          "default": "",
+          "multiline": true
+        }
+      ],
+      "example_2_output": [
+        "STRING",
+        {
+          "default": "",
+          "multiline": true
+        }
+      ],
+      "example_3_input": [
+        "STRING",
+        {
+          "default": "",
+          "multiline": true
+        }
+      ],
+      "example_3_output": [
+        "STRING",
+        {
+          "default": "",
+          "multiline": true
+        }
+      ],
+      "instruction_prefix": [
+        "STRING",
+        {
+          "default": "Here are examples of the desired format:"
+        }
+      ]
+    },
+    "required": {
+      "example_1_input": [
+        "STRING",
+        {
+          "default": "",
+          "multiline": true
+        }
+      ],
+      "example_1_output": [
+        "STRING",
+        {
+          "default": "",
+          "multiline": true
+        }
+      ]
+    }
+  },
+  "name": "XtremetoolsLMStudioFewShotExamples",
+  "return_names": [
+    "examples_section",
+    "info"
+  ],
+  "return_types": [
+    "STRING",
+    "STRING"
+  ]
+}

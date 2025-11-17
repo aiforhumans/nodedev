@@ -1,0 +1,78 @@
+{
+  "category": "\ud83e\udd16 Xtremetools/\ud83e\udd16 LM Studio",
+  "function": "generate",
+  "inputs": {
+    "optional": {
+      "generation_settings": [
+        "LM_STUDIO_GENERATION"
+      ],
+      "max_tokens": [
+        "INT",
+        {
+          "default": 256,
+          "max": 8192,
+          "min": 16
+        }
+      ],
+      "model": [
+        "STRING",
+        {
+          "default": ""
+        }
+      ],
+      "model_settings": [
+        "LM_STUDIO_MODEL"
+      ],
+      "server_settings": [
+        "LM_STUDIO_SERVER"
+      ],
+      "server_url": [
+        "STRING",
+        {
+          "default": "http://localhost:1234"
+        }
+      ],
+      "system_prompt": [
+        "STRING",
+        {
+          "default": "You are a helpful assistant.",
+          "multiline": true
+        }
+      ],
+      "temperature": [
+        "FLOAT",
+        {
+          "default": 0.7,
+          "max": 2.0,
+          "min": 0.0,
+          "step": 0.05
+        }
+      ],
+      "user_input": [
+        "STRING",
+        {
+          "default": "",
+          "multiline": true
+        }
+      ]
+    },
+    "required": {
+      "prompt": [
+        "STRING",
+        {
+          "default": "Describe the scene",
+          "multiline": true
+        }
+      ]
+    }
+  },
+  "name": "XtremetoolsLMStudioText",
+  "return_names": [
+    "text",
+    "info"
+  ],
+  "return_types": [
+    "STRING",
+    "STRING"
+  ]
+}

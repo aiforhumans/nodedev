@@ -1,4 +1,4 @@
-"""Quick sanity checks for the ComfyUI-Xtremetools dev environment."""
+"""Quick sanity checks for the 🤖Xtremetools dev environment."""
 from pathlib import Path
 import sys
 

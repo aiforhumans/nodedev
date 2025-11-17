@@ -1,0 +1,86 @@
+{
+  "category": "\ud83e\udd16 Xtremetools/\ud83d\udd27 Meta-Workflow",
+  "function": "generate_workflow",
+  "inputs": {
+    "required": {
+      "auto_layout": [
+        "BOOLEAN",
+        {
+          "default": true
+        }
+      ],
+      "debug": [
+        "BOOLEAN",
+        {
+          "default": false
+        }
+      ],
+      "max_tokens": [
+        "INT",
+        {
+          "default": 4096,
+          "max": 8192,
+          "min": 512,
+          "step": 512
+        }
+      ],
+      "model_settings": [
+        "LM_STUDIO_MODEL",
+        {
+          "forceInput": true
+        }
+      ],
+      "retry_attempts": [
+        "INT",
+        {
+          "default": 1,
+          "max": 3,
+          "min": 1,
+          "step": 1
+        }
+      ],
+      "server_settings": [
+        "LM_STUDIO_SERVER",
+        {
+          "forceInput": true
+        }
+      ],
+      "synthesize_links": [
+        "BOOLEAN",
+        {
+          "default": true
+        }
+      ],
+      "temperature": [
+        "FLOAT",
+        {
+          "default": 0.3,
+          "max": 2.0,
+          "min": 0.0,
+          "step": 0.1
+        }
+      ],
+      "use_json_response_format": [
+        "BOOLEAN",
+        {
+          "default": true
+        }
+      ],
+      "workflow_request": [
+        "STRING",
+        {
+          "forceInput": true
+        }
+      ]
+    }
+  },
+  "name": "XtremetoolsWorkflowGenerator",
+  "return_names": [
+    "workflow_json",
+    "info"
+  ],
+  "return_types": [
+    "STRING",
+    "STRING"
+  ]
+}

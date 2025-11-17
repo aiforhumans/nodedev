@@ -1,0 +1,32 @@
+{
+  "category": "\ud83e\udd16 Xtremetools/\ud83e\udd16 LM Studio/\u270d\ufe0f Prompts",
+  "function": "apply_weights",
+  "inputs": {
+    "optional": {
+      "weight_mode": [
+        [
+          "repeat",
+          "explicit"
+        ]
+      ]
+    },
+    "required": {
+      "prompt": [
+        "STRING",
+        {
+          "default": "",
+          "multiline": true
+        }
+      ]
+    }
+  },
+  "name": "XtremetoolsLMStudioPromptWeighter",
+  "return_names": [
+    "weighted_prompt",
+    "info"
+  ],
+  "return_types": [
+    "STRING",
+    "STRING"
+  ]
+}

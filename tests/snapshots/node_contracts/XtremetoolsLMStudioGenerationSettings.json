@@ -1,0 +1,45 @@
+{
+  "category": "\ud83e\udd16 Xtremetools/\ud83e\udd16 LM Studio/\u2699\ufe0f Settings",
+  "function": "build_generation_settings",
+  "inputs": {
+    "optional": {},
+    "required": {
+      "max_tokens": [
+        "INT",
+        {
+          "default": 256,
+          "max": 8192,
+          "min": 16
+        }
+      ],
+      "response_format": [
+        "STRING",
+        {
+          "choices": [
+            "text",
+            "json_object"
+          ],
+          "default": "text"
+        }
+      ],
+      "temperature": [
+        "FLOAT",
+        {
+          "default": 0.7,
+          "max": 2.0,
+          "min": 0.0,
+          "step": 0.05
+        }
+      ]
+    }
+  },
+  "name": "XtremetoolsLMStudioGenerationSettings",
+  "return_names": [
+    "generation_settings",
+    "info"
+  ],
+  "return_types": [
+    "LM_STUDIO_GENERATION",
+    "STRING"
+  ]
+}

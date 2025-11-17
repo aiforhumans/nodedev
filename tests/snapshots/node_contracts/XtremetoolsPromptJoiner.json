@@ -1,0 +1,39 @@
+{
+  "category": "\ud83e\udd16 Xtremetools/\ud83e\udde9 Prompt Tools",
+  "function": "build_prompt",
+  "inputs": {
+    "optional": {
+      "delimiter": [
+        "STRING",
+        {
+          "default": " | "
+        }
+      ]
+    },
+    "required": {
+      "primary": [
+        "STRING",
+        {
+          "default": "Describe the scene",
+          "multiline": true
+        }
+      ],
+      "secondary": [
+        "STRING",
+        {
+          "default": "Add lighting details",
+          "multiline": true
+        }
+      ]
+    }
+  },
+  "name": "XtremetoolsPromptJoiner",
+  "return_names": [
+    "prompt",
+    "info"
+  ],
+  "return_types": [
+    "STRING",
+    "STRING"
+  ]
+}

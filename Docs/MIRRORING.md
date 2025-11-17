@@ -1,4 +1,4 @@
-# ComfyUI-Xtremetools Mirroring Strategy
+# 🤖Xtremetools Mirroring Strategy
 
 Use a symbolic link so that edits in this workspace immediately reflect inside the ComfyUI portable installation.
 
@@ -7,10 +7,10 @@ Use a symbolic link so that edits in this workspace immediately reflect inside t
 - Ensure `C:\ComfyUI_windows_portable\ComfyUI\custom_nodes` exists.
 
 ## Steps
-1. Delete any existing `ComfyUI-Xtremetools` folder inside the ComfyUI `custom_nodes` directory (back it up first if needed).
+1. Delete any existing `🤖Xtremetools` folder inside the ComfyUI `custom_nodes` directory (back it up first if needed).
 2. From an elevated terminal, run:
    ```cmd
-   mklink /D "C:\ComfyUI_windows_portable\ComfyUI\custom_nodes\ComfyUI-Xtremetools" "C:\nodedev\ComfyUI-Xtremetools"
+   mklink /D "C:\ComfyUI_windows_portable\ComfyUI\custom_nodes\🤖Xtremetools" "C:\nodedev\🤖Xtremetools"
    ```
 3. Confirm the link by listing the target directory and ensuring files appear immediately after edits in this workspace.
 

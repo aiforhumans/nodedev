@@ -1,0 +1,45 @@
+{
+  "category": "\ud83e\udd16 Xtremetools/\ud83e\udd16 LM Studio/\u270d\ufe0f Prompts",
+  "function": "combine_prompts",
+  "inputs": {
+    "optional": {
+      "context_first": [
+        "BOOLEAN",
+        {
+          "default": false
+        }
+      ],
+      "separator": [
+        "STRING",
+        {
+          "default": "\n\n"
+        }
+      ]
+    },
+    "required": {
+      "context": [
+        "STRING",
+        {
+          "default": "",
+          "multiline": true
+        }
+      ],
+      "instruction": [
+        "STRING",
+        {
+          "default": "",
+          "multiline": true
+        }
+      ]
+    }
+  },
+  "name": "XtremetoolsLMStudioDualPrompt",
+  "return_names": [
+    "combined_prompt",
+    "info"
+  ],
+  "return_types": [
+    "STRING",
+    "STRING"
+  ]
+}

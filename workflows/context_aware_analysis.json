@@ -1,0 +1,168 @@
+{
+  "last_node_id": 4,
+  "last_link_id": 6,
+  "nodes": [
+    {
+      "id": 0,
+      "type": "XtremetoolsLMStudioServerSettings",
+      "pos": [100, 100],
+      "size": [200, 100],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "server_settings",
+          "type": "LM_STUDIO_SERVER",
+          "links": [0]
+        }
+      ],
+      "properties": {},
+      "widgets_values": ["http://localhost:1234", 60]
+    },
+    {
+      "id": 1,
+      "type": "XtremetoolsLMStudioModelSettings",
+      "pos": [100, 250],
+      "size": [200, 100],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "model_settings",
+          "type": "LM_STUDIO_MODEL",
+          "links": [1]
+        }
+      ],
+      "properties": {},
+      "widgets_values": ["phi-3", false]
+    },
+    {
+      "id": 2,
+      "type": "XtremetoolsLMStudioDualPrompt",
+      "pos": [350, 100],
+      "size": [250, 150],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "combined_prompt",
+          "type": "STRING",
+          "links": [2]
+        }
+      ],
+      "properties": {},
+      "widgets_values": [
+        "Analyze the following market data and suggest three competitive strategies.",
+        "Market Context: The software industry is rapidly evolving with AI integration. Key competitors include Acme Corp (market leader), TechFlow (innovative startup), and LegacySoft (established player). Current market size: $500B, growing at 12% YoY.",
+        false
+      ]
+    },
+    {
+      "id": 3,
+      "type": "XtremetoolsLMStudioText",
+      "pos": [650, 100],
+      "size": [250, 150],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "server_settings",
+          "type": "LM_STUDIO_SERVER",
+          "link": 0
+        },
+        {
+          "name": "model_settings",
+          "type": "LM_STUDIO_MODEL",
+          "link": 1
+        },
+        {
+          "name": "user_prompt",
+          "type": "STRING",
+          "link": 2
+        },
+        {
+          "name": "system_prompt",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "temperature",
+          "type": "FLOAT",
+          "link": null
+        },
+        {
+          "name": "max_tokens",
+          "type": "INT",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "generated_text",
+          "type": "STRING",
+          "links": [3]
+        },
+        {
+          "name": "info",
+          "type": "STRING",
+          "links": [4]
+        }
+      ],
+      "properties": {},
+      "widgets_values": ["", "", "", "", 0.7, 512]
+    },
+    {
+      "id": 4,
+      "type": "ShowText|pysssss",
+      "pos": [950, 100],
+      "size": [300, 150],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "link": 3
+        }
+      ],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": ["Strategic Analysis Output"]
+    }
+  ],
+  "groups": [
+    {
+      "title": "Configuration",
+      "bounding": [100, 100, 200, 250],
+      "color": "#3f789e",
+      "font_size": 20
+    },
+    {
+      "title": "Context-Aware Analysis",
+      "bounding": [350, 100, 250, 150],
+      "color": "#5a7f2f",
+      "font_size": 20
+    },
+    {
+      "title": "Generation",
+      "bounding": [650, 100, 250, 150],
+      "color": "#8b5a2b",
+      "font_size": 20
+    }
+  ],
+  "config": {},
+  "extra": {
+    "generated_by": "Xtremetools",
+    "generator_version": "1.0",
+    "description": "Dual-prompt workflow: separates instruction from rich context for more focused, grounded responses"
+  },
+  "version": 0.4
+}

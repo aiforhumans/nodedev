@@ -1,0 +1,25 @@
+{
+  "category": "\ud83e\udd16 Xtremetools/\ud83d\udd27 Meta-Workflow",
+  "function": "validate_workflow",
+  "inputs": {
+    "required": {
+      "workflow_json": [
+        "STRING",
+        {
+          "forceInput": true
+        }
+      ]
+    }
+  },
+  "name": "XtremetoolsWorkflowValidator",
+  "return_names": [
+    "validation_report",
+    "is_valid",
+    "info"
+  ],
+  "return_types": [
+    "STRING",
+    "BOOLEAN",
+    "STRING"
+  ]
+}

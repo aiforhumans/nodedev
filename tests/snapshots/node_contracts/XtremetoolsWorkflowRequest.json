@@ -1,0 +1,63 @@
+{
+  "category": "\ud83e\udd16 Xtremetools/\ud83d\udd27 Meta-Workflow",
+  "function": "build_request",
+  "inputs": {
+    "optional": {
+      "required_nodes": [
+        "STRING",
+        {
+          "default": "",
+          "multiline": true,
+          "placeholder": "Optional: Specific nodes to include (comma-separated)"
+        }
+      ]
+    },
+    "required": {
+      "complexity": [
+        [
+          "simple",
+          "moderate",
+          "complex"
+        ],
+        {
+          "default": "moderate"
+        }
+      ],
+      "output_format": [
+        "STRING",
+        {
+          "default": "structured text (POSITIVE/NEGATIVE/STYLE)",
+          "multiline": false
+        }
+      ],
+      "user_description": [
+        "STRING",
+        {
+          "default": "Create a workflow that generates creative SDXL prompts with few-shot examples",
+          "multiline": true
+        }
+      ],
+      "workflow_type": [
+        [
+          "lm_studio_pipeline",
+          "prompt_engineering",
+          "multi_stage_generation",
+          "quality_control",
+          "custom"
+        ],
+        {
+          "default": "lm_studio_pipeline"
+        }
+      ]
+    }
+  },
+  "name": "XtremetoolsWorkflowRequest",
+  "return_names": [
+    "structured_request",
+    "info"
+  ],
+  "return_types": [
+    "STRING",
+    "STRING"
+  ]
+}

@@ -1,0 +1,221 @@
+{
+  "last_node_id": 6,
+  "last_link_id": 8,
+  "nodes": [
+    {
+      "id": 0,
+      "type": "XtremetoolsWorkflowRequest",
+      "pos": [100, 100],
+      "size": [250, 150],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "structured_request",
+          "type": "STRING",
+          "links": [0]
+        }
+      ],
+      "properties": {},
+      "widgets_values": [
+        "Create a workflow that generates creative product marketing copy for e-commerce using SDXL-style prompt emphasis and few-shot learning examples.",
+        "prompt_engineering",
+        "Structured marketing copy (headline, body, CTA)",
+        "moderate",
+        "XtremetoolsLMStudioStylePreset, XtremetoolsLMStudioFewShotExamples"
+      ]
+    },
+    {
+      "id": 1,
+      "type": "XtremetoolsLMStudioServerSettings",
+      "pos": [400, 100],
+      "size": [200, 100],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "server_settings",
+          "type": "LM_STUDIO_SERVER",
+          "links": [1]
+        }
+      ],
+      "properties": {},
+      "widgets_values": ["http://localhost:1234", 60]
+    },
+    {
+      "id": 2,
+      "type": "XtremetoolsLMStudioModelSettings",
+      "pos": [400, 250],
+      "size": [200, 100],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "model_settings",
+          "type": "LM_STUDIO_MODEL",
+          "links": [2]
+        }
+      ],
+      "properties": {},
+      "widgets_values": ["phi-3", false]
+    },
+    {
+      "id": 3,
+      "type": "XtremetoolsWorkflowGenerator",
+      "pos": [700, 100],
+      "size": [300, 200],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "workflow_request",
+          "type": "STRING",
+          "link": 0
+        },
+        {
+          "name": "server_settings",
+          "type": "LM_STUDIO_SERVER",
+          "link": 1
+        },
+        {
+          "name": "model_settings",
+          "type": "LM_STUDIO_MODEL",
+          "link": 2
+        }
+      ],
+      "outputs": [
+        {
+          "name": "workflow_json",
+          "type": "STRING",
+          "links": [3]
+        },
+        {
+          "name": "info",
+          "type": "STRING",
+          "links": [4]
+        }
+      ],
+      "properties": {},
+      "widgets_values": [0.3, 4096, 1, true, false, true, true]
+    },
+    {
+      "id": 4,
+      "type": "XtremetoolsWorkflowValidator",
+      "pos": [1050, 100],
+      "size": [250, 150],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "workflow_json",
+          "type": "STRING",
+          "link": 3
+        }
+      ],
+      "outputs": [
+        {
+          "name": "validation_report",
+          "type": "STRING",
+          "links": [5]
+        },
+        {
+          "name": "is_valid",
+          "type": "BOOLEAN",
+          "links": [6]
+        },
+        {
+          "name": "info",
+          "type": "STRING",
+          "links": [7]
+        }
+      ],
+      "properties": {},
+      "widgets_values": []
+    },
+    {
+      "id": 5,
+      "type": "XtremetoolsWorkflowExporter",
+      "pos": [1350, 100],
+      "size": [250, 150],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "workflow_json",
+          "type": "STRING",
+          "link": 3
+        }
+      ],
+      "outputs": [
+        {
+          "name": "formatted_json",
+          "type": "STRING",
+          "links": [8]
+        }
+      ],
+      "properties": {},
+      "widgets_values": [2, true, true, false]
+    },
+    {
+      "id": 6,
+      "type": "ShowText|pysssss",
+      "pos": [1650, 100],
+      "size": [300, 200],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "link": 8
+        }
+      ],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": ["Generated Workflow JSON"]
+    }
+  ],
+  "groups": [
+    {
+      "title": "Request",
+      "bounding": [100, 100, 250, 150],
+      "color": "#3f789e",
+      "font_size": 20
+    },
+    {
+      "title": "Configuration",
+      "bounding": [400, 100, 200, 250],
+      "color": "#5a7f2f",
+      "font_size": 20
+    },
+    {
+      "title": "Generation Pipeline",
+      "bounding": [700, 100, 300, 200],
+      "color": "#8b5a2b",
+      "font_size": 20
+    },
+    {
+      "title": "Validation & Export",
+      "bounding": [1050, 100, 550, 150],
+      "color": "#ff7f00",
+      "font_size": 20
+    }
+  ],
+  "config": {},
+  "extra": {
+    "generated_by": "Xtremetools",
+    "generator_version": "1.0",
+    "description": "Meta-workflow: demonstrates AI-driven workflow generation from natural language request through validation and export"
+  },
+  "version": 0.4
+}

@@ -1,0 +1,49 @@
+{
+  "category": "\ud83e\udd16 Xtremetools/\ud83e\udd16 LM Studio/\u270d\ufe0f Prompts",
+  "function": "apply_quality_preset",
+  "inputs": {
+    "optional": {
+      "temperature_adjust": [
+        "FLOAT",
+        {
+          "default": 0.0,
+          "max": 0.5,
+          "min": -0.5,
+          "step": 0.05
+        }
+      ],
+      "tokens_adjust": [
+        "INT",
+        {
+          "default": 0,
+          "max": 512,
+          "min": -512
+        }
+      ]
+    },
+    "required": {
+      "preset": [
+        [
+          "concise_factual",
+          "balanced",
+          "creative_verbose",
+          "exploratory",
+          "precise_technical"
+        ]
+      ]
+    }
+  },
+  "name": "XtremetoolsLMStudioQualityControl",
+  "return_names": [
+    "temperature",
+    "max_tokens",
+    "top_p",
+    "info"
+  ],
+  "return_types": [
+    "FLOAT",
+    "INT",
+    "FLOAT",
+    "STRING"
+  ]
+}

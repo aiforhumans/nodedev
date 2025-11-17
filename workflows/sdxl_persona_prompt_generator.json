@@ -1,0 +1,413 @@
+{
+  "id": "sdxl-persona-prompting",
+  "revision": 0,
+  "last_node_id": 18,
+  "last_link_id": 24,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "XtremetoolsLMStudioServerSettings",
+      "pos": [100, 100],
+      "size": [320, 120],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {"name": "server_settings", "type": "LM_STUDIO_SERVER", "links": [1]},
+        {"name": "info", "type": "STRING", "links": null}
+      ],
+      "properties": {"Node name for S&R": "XtremetoolsLMStudioServerSettings"},
+      "widgets_values": ["http://localhost:1234", 60]
+    },
+    {
+      "id": 2,
+      "type": "XtremetoolsLMStudioModelSettings",
+      "pos": [100, 260],
+      "size": [320, 102],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {"name": "model_settings", "type": "LM_STUDIO_MODEL", "links": [2]},
+        {"name": "info", "type": "STRING", "links": null}
+      ],
+      "properties": {"Node name for S&R": "XtremetoolsLMStudioModelSettings"},
+      "widgets_values": ["ibm/granite-4-h-tiny", false]
+    },
+    {
+      "id": 3,
+      "type": "XtremetoolsLMStudioStylePreset",
+      "pos": [480, 100],
+      "size": [420, 180],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {"name": "system_prompt", "type": "STRING", "links": [3]},
+        {"name": "info", "type": "STRING", "links": null}
+      ],
+      "properties": {"Node name for S&R": "XtremetoolsLMStudioStylePreset"},
+      "widgets_values": [
+        "creative",
+        "You are an SDXL prompt engineering expert. Create detailed, vivid prompts optimized for Stable Diffusion XL image generation. Focus on: photography terms, lighting, composition, style, mood, and technical quality descriptors."
+      ]
+    },
+    {
+      "id": 4,
+      "type": "XtremetoolsLMStudioFewShotExamples",
+      "pos": [480, 320],
+      "size": [420, 440],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {"name": "examples_section", "type": "STRING", "links": [4]},
+        {"name": "info", "type": "STRING", "links": null}
+      ],
+      "properties": {"Node name for S&R": "XtremetoolsLMStudioFewShotExamples"},
+      "widgets_values": [
+        "young woman fashion model in studio",
+        "Professional studio portrait, young elegant fashion model, 25 years old, confident pose, (haute couture:1.3), designer dress, soft studio lighting, neutral backdrop, photorealistic, high fashion photography, sharp focus, 8k uhd, DSLR, soft lighting, high quality, Fujifilm XT3",
+        "mountain landscape at sunset",
+        "Breathtaking mountain vista at golden hour, dramatic (sunset:1.4) lighting, snow-capped peaks, alpine meadow foreground, wispy clouds, (epic scale:1.2), landscape photography, wide angle, vibrant colors, professional photography, Canon EOS R5, 16mm lens, f/11, high dynamic range",
+        "vintage cafe interior",
+        "Cozy vintage European café interior, warm ambient lighting, (rustic wooden tables:1.2), exposed brick walls, antique coffee grinder, steaming espresso cups, soft morning light through large windows, nostalgic atmosphere, film photography aesthetic, shallow depth of field, 35mm, Kodak Portra 400",
+        "Transform this simple scene description into a detailed SDXL prompt:"
+      ]
+    },
+    {
+      "id": 5,
+      "type": "XtremetoolsLMStudioNegativePrompt",
+      "pos": [960, 100],
+      "size": [420, 200],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {"name": "system_instruction", "type": "STRING", "links": [5]},
+        {"name": "info", "type": "STRING", "links": null}
+      ],
+      "properties": {"Node name for S&R": "XtremetoolsLMStudioNegativePrompt"},
+      "widgets_values": [
+        "nudity, nsfw, explicit content, violence, gore, weapons, offensive imagery, copyrighted characters, branded products",
+        "verbose",
+        "strict"
+      ]
+    },
+    {
+      "id": 6,
+      "type": "XtremetoolsLMStudioPromptWeighter",
+      "pos": [960, 340],
+      "size": [420, 200],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {"name": "weighted_prompt", "type": "STRING", "links": [6]},
+        {"name": "info", "type": "STRING", "links": null}
+      ],
+      "properties": {"Node name for S&R": "XtremetoolsLMStudioPromptWeighter"},
+      "widgets_values": [
+        "Generate SDXL prompt with emphasis on (photorealistic:1.4) quality, (professional lighting:1.3), and (high detail:1.2) textures",
+        "explicit"
+      ]
+    },
+    {
+      "id": 7,
+      "type": "XtremetoolsLMStudioStructuredOutput",
+      "pos": [960, 580],
+      "size": [420, 200],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {"name": "format_instruction", "type": "STRING", "links": [7]},
+        {"name": "info", "type": "STRING", "links": null}
+      ],
+      "properties": {"Node name for S&R": "XtremetoolsLMStudioStructuredOutput"},
+      "widgets_values": [
+        "custom",
+        "Format your response as:\n\nPOSITIVE PROMPT:\n[Detailed SDXL positive prompt with weighted terms in (keyword:weight) format]\n\nNEGATIVE PROMPT:\n[Comprehensive negative prompt listing unwanted elements]\n\nSTYLE NOTES:\n[Brief technical notes about photography style, lighting, composition]",
+        false,
+        "prompt"
+      ]
+    },
+    {
+      "id": 8,
+      "type": "XtremetoolsLMStudioQualityControl",
+      "pos": [100, 400],
+      "size": [320, 200],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {"name": "temperature", "type": "FLOAT", "links": [8]},
+        {"name": "max_tokens", "type": "INT", "links": [9]},
+        {"name": "top_p", "type": "FLOAT", "links": null},
+        {"name": "info", "type": "STRING", "links": null}
+      ],
+      "properties": {"Node name for S&R": "XtremetoolsLMStudioQualityControl"},
+      "widgets_values": ["creative_verbose", 0.1, 200]
+    },
+    {
+      "id": 9,
+      "type": "SeargePromptCombiner",
+      "pos": [1440, 100],
+      "size": [380, 200],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {"name": "prompt1", "type": "STRING", "link": 3},
+        {"name": "prompt2", "type": "STRING", "link": 4}
+      ],
+      "outputs": [
+        {"name": "combined prompt", "type": "STRING", "links": [10]}
+      ],
+      "properties": {"Node name for S&R": "SeargePromptCombiner"},
+      "widgets_values": ["", "\n\n", ""]
+    },
+    {
+      "id": 10,
+      "type": "SeargePromptCombiner",
+      "pos": [1440, 340],
+      "size": [380, 200],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {"name": "prompt1", "type": "STRING", "link": 10},
+        {"name": "prompt2", "type": "STRING", "link": 5}
+      ],
+      "outputs": [
+        {"name": "combined prompt", "type": "STRING", "links": [11]}
+      ],
+      "properties": {"Node name for S&R": "SeargePromptCombiner"},
+      "widgets_values": ["", "\n\n", ""]
+    },
+    {
+      "id": 11,
+      "type": "SeargePromptCombiner",
+      "pos": [1440, 580],
+      "size": [380, 200],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {"name": "prompt1", "type": "STRING", "link": 11},
+        {"name": "prompt2", "type": "STRING", "link": 6}
+      ],
+      "outputs": [
+        {"name": "combined prompt", "type": "STRING", "links": [12]}
+      ],
+      "properties": {"Node name for S&R": "SeargePromptCombiner"},
+      "widgets_values": ["", "\n\n", ""]
+    },
+    {
+      "id": 12,
+      "type": "SeargePromptCombiner",
+      "pos": [1880, 340],
+      "size": [380, 200],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        {"name": "prompt1", "type": "STRING", "link": 12},
+        {"name": "prompt2", "type": "STRING", "link": 7}
+      ],
+      "outputs": [
+        {"name": "combined prompt", "type": "STRING", "links": [13]}
+      ],
+      "properties": {"Node name for S&R": "SeargePromptCombiner"},
+      "widgets_values": ["", "\n\n", ""]
+    },
+    {
+      "id": 13,
+      "type": "XtremetoolsLMStudioText",
+      "pos": [2320, 200],
+      "size": [480, 400],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [
+        {"name": "server_settings", "type": "LM_STUDIO_SERVER", "link": 1},
+        {"name": "model_settings", "type": "LM_STUDIO_MODEL", "link": 2},
+        {"name": "system_prompt", "type": "STRING", "link": 13},
+        {"name": "temperature", "type": "FLOAT", "link": 8},
+        {"name": "max_tokens", "type": "INT", "link": 9}
+      ],
+      "outputs": [
+        {"name": "text", "type": "STRING", "links": [14]},
+        {"name": "info", "type": "STRING", "links": [15]}
+      ],
+      "properties": {"Node name for S&R": "XtremetoolsLMStudioText"},
+      "widgets_values": [
+        "Young teen model posing in high heels",
+        "",
+        "",
+        "http://localhost:1234",
+        "",
+        1.0,
+        1024
+      ]
+    },
+    {
+      "id": 14,
+      "type": "ShowText|pysssss",
+      "pos": [2860, 200],
+      "size": [600, 600],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [
+        {"name": "text", "type": "STRING", "link": 14}
+      ],
+      "outputs": [
+        {"name": "STRING", "type": "STRING", "links": null}
+      ],
+      "properties": {"Node name for S&R": "ShowText|pysssss"},
+      "widgets_values": [
+        "POSITIVE PROMPT:\nProfessional fashion editorial, (sophisticated young model:1.3), 16-19 years old, confident runway pose, (designer high heels:1.2), elegant studio lighting, clean minimalist backdrop, (high fashion photography:1.4), sharp focus, photorealistic, 8k uhd, DSLR, professional lighting, Vogue style, fashion week aesthetic\n\nNEGATIVE PROMPT:\nnudity, nsfw, explicit content, sexualized pose, inappropriate clothing, violence, deformed, ugly, bad anatomy, blurry, low quality, watermark, text, signature\n\nSTYLE NOTES:\nClean fashion editorial style with emphasis on professional presentation, age-appropriate styling, and sophisticated composition suitable for mainstream fashion publications."
+      ]
+    },
+    {
+      "id": 15,
+      "type": "ShowText|pysssss",
+      "pos": [2860, 860],
+      "size": [600, 200],
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "inputs": [
+        {"name": "text", "type": "STRING", "link": 15}
+      ],
+      "outputs": [
+        {"name": "STRING", "type": "STRING", "links": null}
+      ],
+      "properties": {"Node name for S&R": "ShowText|pysssss"},
+      "widgets_values": [""]
+    },
+    {
+      "id": 16,
+      "type": "Note",
+      "pos": [100, 640],
+      "size": [1320, 280],
+      "flags": {},
+      "order": 15,
+      "mode": 0,
+      "properties": {},
+      "widgets_values": [
+        "🎨 SDXL PERSONA PROMPT GENERATOR\n\nThis workflow transforms simple scene descriptions into professional SDXL prompts:\n\n1️⃣ StylePreset: Creative persona with SDXL prompt engineering expertise\n2️⃣ FewShotExamples: 3 professional examples (studio portrait, landscape, café interior)\n3️⃣ NegativePrompt: Strict content safety filters\n4️⃣ PromptWeighter: Emphasizes photorealistic quality, professional lighting, high detail\n5️⃣ StructuredOutput: Custom format (POSITIVE/NEGATIVE/STYLE NOTES)\n6️⃣ QualityControl: Creative_verbose preset (temp 1.0, 1024 tokens)\n7️⃣ SeargePromptCombiners: Chain all context elements in proper order\n\nInput: Simple scene description (e.g., \"young model posing\")\nOutput: Professional SDXL prompt with weighted terms, negative prompt, style notes\n\nSafety: Strict content filtering prevents inappropriate outputs. All examples demonstrate professional, age-appropriate styling."
+      ]
+    },
+    {
+      "id": 17,
+      "type": "Note",
+      "pos": [2320, 640],
+      "size": [480, 280],
+      "flags": {},
+      "order": 16,
+      "mode": 0,
+      "properties": {},
+      "widgets_values": [
+        "📝 USER INPUT\n\nEnter your scene description in the 'prompt' field of the LM Studio Text node.\n\nExamples:\n- \"portrait of elderly craftsman\"\n- \"cyberpunk street at night\"\n- \"ballet dancer mid-leap\"\n- \"ancient library interior\"\n\nThe AI will transform it into:\n✅ Detailed positive prompt with weights\n✅ Comprehensive negative prompt\n✅ Technical style notes"
+      ]
+    },
+    {
+      "id": 18,
+      "type": "Note",
+      "pos": [2860, 1100],
+      "size": [600, 200],
+      "flags": {},
+      "order": 17,
+      "mode": 0,
+      "properties": {},
+      "widgets_values": [
+        "⚙️ CUSTOMIZATION TIPS\n\n🎭 Style: Change 'creative' to 'technical' for more precise prompts\n📚 Examples: Modify few-shot examples to match your preferred style\n🚫 Safety: Adjust negative prompt strictness (soft/moderate/strict)\n⚖️ Emphasis: Edit weighted terms in PromptWeighter node\n🎨 Format: Customize structured output format as needed\n🌡️ Creativity: Adjust QualityControl temperature (0.7-1.2 for prompts)"
+      ]
+    }
+  ],
+  "links": [
+    [1, 1, 0, 13, 0, "LM_STUDIO_SERVER"],
+    [2, 2, 0, 13, 1, "LM_STUDIO_MODEL"],
+    [3, 3, 0, 9, 0, "STRING"],
+    [4, 4, 0, 9, 1, "STRING"],
+    [5, 5, 0, 10, 1, "STRING"],
+    [6, 6, 0, 11, 1, "STRING"],
+    [7, 7, 0, 12, 1, "STRING"],
+    [8, 8, 0, 13, 3, "FLOAT"],
+    [9, 8, 1, 13, 4, "INT"],
+    [10, 9, 0, 10, 0, "STRING"],
+    [11, 10, 0, 11, 0, "STRING"],
+    [12, 11, 0, 12, 0, "STRING"],
+    [13, 12, 0, 13, 2, "STRING"],
+    [14, 13, 0, 14, 0, "STRING"],
+    [15, 13, 1, 15, 0, "STRING"]
+  ],
+  "groups": [
+    {
+      "id": 1,
+      "title": "⚙️ LM Studio Configuration",
+      "bounding": [80, 50, 360, 580],
+      "color": "#3f51b5",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 2,
+      "title": "🎭 Persona & Examples",
+      "bounding": [460, 50, 460, 740],
+      "color": "#8e24aa",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 3,
+      "title": "⚖️ Constraints & Formatting",
+      "bounding": [940, 50, 460, 760],
+      "color": "#e64a19",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 4,
+      "title": "🔗 Context Assembly",
+      "bounding": [1420, 50, 860, 760],
+      "color": "#00897b",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 5,
+      "title": "🤖 Generation & Output",
+      "bounding": [2300, 50, 1180, 1080],
+      "color": "#5e35b1",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 6,
+      "title": "📖 Documentation",
+      "bounding": [80, 600, 1360, 340],
+      "color": "#43a047",
+      "font_size": 24,
+      "flags": {}
+    }
+  ],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.7,
+      "offset": [100, 100]
+    }
+  },
+  "version": 0.4
+}

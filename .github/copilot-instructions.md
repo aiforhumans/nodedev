@@ -1,38 +1,141 @@
-# ComfyUI-Xtremetools – AI Coding Guide
+# 🤖Xtremetools – AI Coding Guide
 
-## Mission & Scope
-- Build custom ComfyUI nodes inside `ComfyUI-Xtremetools/src/comfyui_xtremetools`, then mirror this folder into `C:\ComfyUI_windows_portable\ComfyUI\custom_nodes\ComfyUI-Xtremetools` (see `Docs/MIRRORING.md`).
-- Treat this repo as the single source of truth; live ComfyUI installs should either symlink to it or receive automated copies.
+## Architecture Overview
+**Source of Truth:** `🤖Xtremetools/src/comfyui_xtremetools` (mirrored to `C:\ComfyUI_windows_portable\ComfyUI\custom_nodes\🤖Xtremetools` via symlink).
 
-## Project Layout
-- `ComfyUI-Xtremetools/src/comfyui_xtremetools/` – Python package exported to ComfyUI; `__init__.py` re-exports from the ASCII-safe loader in `alias.py`.
-- `base/` – shared helpers like `info.py` (InfoFormatter), `node_base.py` (XtremetoolsBaseNode), and `lm_studio.py` (HTTP utilities + `LMStudioAPIError`). Always extend these instead of rolling custom scaffolds.
-- `nodes/` – drop each node module here; they are auto-imported via `alias._iter_node_modules()` so file names matter (`example_prompt_tool.py`, `test_node.py`, `lm_studio_text.py`, etc.).
-- `web/` – reserved for future frontend extensions; remember to expose `WEB_DIRECTORY` when populated.
-- `Docs/` – contains mirroring instructions, best practices, LM Studio integration notes (`LM_STUDIO.md`), and competitive research (`XDEV_NOTES.md`).
-- `tests/` – pytest suites (see `tests/test_nodes.py`) that assert tuple output, registry wiring, and LM Studio HTTP mocks.
+**Core Flow:** Node discovery (`alias.py`) → Base classes (`base/node_base.py`, `base/lm_studio.py`) → Specific nodes (`nodes/*.py`) → LM Studio backend for prompt engineering.
 
-## Node Authoring Conventions
-- Every node class must declare `CATEGORY`, `FUNCTION`, `RETURN_TYPES`, `RETURN_NAMES`, and implement `INPUT_TYPES`. Use `XtremetoolsBaseNode.ensure_tuple()` for outputs and `build_info()` for consistent info strings (see `nodes/example_prompt_tool.py`).
-- Keep user-facing strings concise and emoji-friendly (InfoFormatter prepends `emoji + title`). Use info blocks for telemetry rather than print statements.
-- For HTTP-backed nodes (e.g., LM Studio), subclass `LMStudioBaseNode` to reuse `build_messages`, `invoke_chat_completion`, latency tracking, and standardized error surfacing.
-- Register nodes by populating local `NODE_CLASS_MAPPINGS` / `NODE_DISPLAY_NAME_MAPPINGS` inside each module; the alias loader merges them automatically.
+**Key Abstraction:** The **alias loader** (`alias.py`) auto-discovers all files under `nodes/` and merges their `NODE_CLASS_MAPPINGS`/`NODE_DISPLAY_NAME_MAPPINGS`—no manual registry edits. ComfyUI imports this package without depending on non-ASCII paths.
 
 ## Development Workflow
-- Use the repo venv: `C:/nodedev/.venv/Scripts/python.exe`. Activate before running scripts or tests.
-- Install dev deps via `python -m pip install -e .[dev]` (see `pyproject.toml`).
-- Run tests with `python -m pytest`; GitHub Actions (`.github/workflows/ci.yml`) runs the same command on pushes/PRs.
-- Quick health check: `python tests/check_env.py`.
-- After adding nodes, recreate the ComfyUI symlink or re-run the `mklink /D` command documented in `Docs/MIRRORING.md`; ComfyUI must be restarted because it caches modules.
+- **Venv:** `C:/nodedev/.venv/Scripts/python.exe` with `python -m pip install -e .[dev]`
+- **Test:** `python -m pytest` (tests all 51 nodes via `tests/test_nodes.py`)
+- **Restart ComfyUI after node changes** for the symlink to reload
+- **Update docs** when adding nodes or changing workflows (see `Docs/BEST_PRACTICES.md`, `Docs/LM_STUDIO.md`, `Docs/MIRRORING.md`)
 
-## Integration & External References
-- Follow official node guidelines summarized in `Docs/BEST_PRACTICES.md` (tensor shapes, widget config, PromptServer messaging).
-- Use `Docs/LM_STUDIO.md` when modifying LM Studio nodes—covers server requirements, typical error causes (HTTP 400 for missing models), and troubleshooting tips.
-- Research insights from `Docs/XDEV_NOTES.md` outline how mature packs structure ControlNet helpers, streaming nodes, and test coverage—mirror those expectations when expanding this repo.
-- When planning APIs or advanced behaviors, document assumptions in `Docs/` first so future agents see rationale before editing code.
+## Node Patterns
+**Every node must declare:**
+- `CATEGORY` (e.g., `"🤖 Xtremetools/🤖 LM Studio"`)
+- `RETURN_TYPES`, `RETURN_NAMES` tuples
+- `FUNCTION` method name
+- `INPUT_TYPES()` classmethod returning `{"required": {...}, "optional": {...}}`
 
-## When Adding Features
-- Create or update doc stubs in `Docs/` alongside code changes; keep mirroring/testing instructions current in `README.md`.
-- Prefer extending `base/node_base.py` or `base/lm_studio.py` rather than introducing new inheritance trees. If new base behavior is required (e.g., batching, streaming), add it there so every node benefits.
-- Update `README.md` with any new workflows (extra build steps, dependencies) and ensure instructions reference actual commands tested in this repo.
-- Always add/extend tests in `tests/test_nodes.py` (or new pytest modules) to cover tuple outputs, registry entries, and network mocks before pushing.
+**Return contract:** Always wrap outputs with `ensure_tuple()` to satisfy ComfyUI's tuple requirement. Example:
+```python
+def execute(self, param1, param2):
+    result = compute(param1, param2)
+    info = self.build_info("Node Name").add(f"Result: {result}").get()
+    return self.ensure_tuple(result, info)
+```
+
+**Base classes:**
+- `XtremetoolsBaseNode`: Base for all nodes; provides `ensure_tuple()`, `build_info()`, shared `CATEGORY`
+- `XtremetoolsUtilityNode`: Lightweight helpers (text, string manipulation) with simpler `INPUT_TYPES()`
+- `LMStudioBaseNode`: For HTTP chat endpoints; includes `build_messages()`, `invoke_chat_completion()`, dataclass support
+
+**Telemetry:** Use `InfoFormatter` (from `base/info.py`) for structured output—avoid print/log. Categories use emoji (menu), but info strings must be ASCII-only.
+
+## LM Studio Integration
+**Dataclass-driven modularity:** Three settings objects travel through ComfyUI graphs:
+- `LMStudioServerSettings`: URL + timeout
+- `LMStudioModelSettings`: model name + fallback behavior
+- `LMStudioGenerationSettings`: temperature, max_tokens, response_format
+
+**Pattern:** `nodes/lm_studio_settings.py` emits these objects; `XtremetoolsLMStudioText` accepts either raw scalars or structured inputs, allowing flexible composition.
+
+**Prompt engineering nodes** (7 helpers from `nodes/lm_studio_prompt_helpers.py`):
+- `StylePreset`: role prompting (8 personas: neutral, concise, creative, technical, socratic, analytical, casual, step_by_step)
+- `FewShotExamples`: XML-tagged exemplars (Anthropic best practice)
+- `StructuredOutput`: explicit format instructions (XML/JSON/Markdown) + chain-of-thought
+- `DualPrompt`: system/user separation for instruction + context
+- `QualityControl`: 5 creativity/precision presets (concise_factual → exploratory)
+- `PromptWeighter`: SDXL-style `(term:weight)` parsing
+- `NegativePrompt`: topic/style constraints (lenient/moderate/strict)
+
+**HTTP Pattern:** `base/lm_studio.py` wraps `/v1/chat/completions`; mocks in tests use `_DummyResponse` (don't call real servers).
+
+## Meta-Workflow Generation
+Four nodes automate workflow creation from natural language:
+1. **WorkflowRequest** (`nodes/workflow_generator.py`): Structures user descriptions (type, complexity, required_nodes)
+2. **WorkflowGenerator**: Calls LM Studio with system prompt teaching node catalog; enforces JSON-only output; retry logic; injects `synthesize_links` + `auto_layout` toggles
+3. **WorkflowValidator** (`nodes/workflow_generator.py`): Checks link symmetry, orphaned nodes, fixes `last_node_id`/`last_link_id` counters
+4. **WorkflowExporter**: Formats output, injects metadata Note nodes, compact/pretty modes
+
+**Post-processor** (`base/workflow_postprocessor.py`):
+- `WorkflowDAGLayout`: Topological ordering (configs left, processors middle, outputs right) + position assignment
+- `synthesize_links()`: Auto-creates links between nodes based on `NODE_PATTERNS` (e.g., StylePreset output → Joiner input)
+
+**Settings in Generator:**
+- `auto_layout=true`: Topologically positions nodes (configs@100, processors@350, outputs@600)
+- `synthesize_links=true`: Auto-wires compatible node types
+- `retry_attempts`: 1–3 attempts with JSON repair on parse failure
+- `use_json_response_format=true`: Request `response_format: {"type": "json_object"}` for stricter LLM output
+
+## Testing Conventions
+**File:** `tests/test_nodes.py` (51 tests, all passing)
+
+**Test pattern:**
+1. Import node class
+2. Instantiate and call its main function
+3. Assert return type is tuple, check data integrity
+4. Verify info string contains expected telemetry
+
+**Example:**
+```python
+def test_style_preset():
+    node = XtremetoolsLMStudioStylePreset()
+    prompt, info = node.build_style("creative")
+    assert isinstance(prompt, str)
+    assert "creative" in info.lower()
+    assert isinstance(info, str)
+```
+
+**Mocking:** Avoid real LM Studio calls; use `_DummyResponse` fixtures for HTTP responses. For settings dataclasses, serialize→deserialize to verify payload correctness.
+
+## File Organization
+```
+🤖Xtremetools/src/comfyui_xtremetools/
+├── __init__.py           # re-exports alias
+├── alias.py              # auto-discovery: loads nodes/, merges mappings
+├── base/
+│   ├── info.py           # InfoFormatter (ASCII telemetry)
+│   ├── node_base.py      # XtremetoolsBaseNode, XtremetoolsUtilityNode
+│   ├── lm_studio.py      # LMStudioBaseNode, settings dataclasses, HTTP client
+│   └── workflow_postprocessor.py  # DAG layout, link synthesis
+└── nodes/                # Auto-discovered by alias
+    ├── example_prompt_tool.py     # XtremetoolsPromptJoiner (template)
+    ├── lm_studio_text.py          # Main LM Studio generation node
+    ├── lm_studio_settings.py      # Three settings emitter nodes
+    ├── lm_studio_prompt_helpers.py # 7 prompt engineering nodes
+    ├── test_node.py               # Diagnostics template
+    └── workflow_generator.py       # 4 meta-workflow nodes
+```
+
+## Key Dependencies & Constraints
+- **Python:** ≥3.10 (f-strings, dataclass slots, type hints)
+- **ComfyUI:** Standard node interface (no external libs required; use stdlib only)
+- **No external packages** in production (requests, numpy, torch bundled by ComfyUI)
+- **Windows-specific paths:** Symlink setup (`Docs/MIRRORING.md`); use `Path` for cross-platform testing
+
+## Documentation Ownership
+- **README.md:** Onboarding, quick start, release checklist
+- **Docs/BEST_PRACTICES.md:** ComfyUI contract (CATEGORY, INPUT_TYPES, tuple return, registration)
+- **Docs/LM_STUDIO.md:** Workflow patterns, few-shot learning, structured output, quality control, HTTP 400 troubleshooting
+- **Docs/XDEV_NOTES.md:** Competitive research (other node packs, design rationale)
+- **Docs/MIRRORING.md:** Symlink setup and maintenance
+- **workflows/README.md:** 10 reference workflows with use cases and architecture diagrams
+
+Update docs when adding novel behavior or changing workflows so future agents understand rationale before editing code.
+
+## Common Pitfalls
+- ❌ **Returning non-tuples:** Always wrap with `ensure_tuple()`
+- ❌ **Emoji in info strings:** Use ASCII-only telemetry; emoji only in CATEGORY
+- ❌ **Manual registry edits:** Let `alias.py` discover nodes; no central mappings
+- ❌ **Real LM Studio calls in tests:** Mock with `_DummyResponse`; check payloads
+- ❌ **Forgetting to restart ComfyUI:** Symlink won't reload without restart
+- ❌ **Unlinked workflows:** Always test with `synthesize_links=true` or manual wiring
+
+## Immediate Next Steps
+- Optional: Embed **deterministic few-shot exemplars** in WorkflowGenerator's system prompt (reduces hallucinations)
+- Optionally: Create **template library** for common patterns (SDXL persona, quality control, reasoning chains)
+- Test with **real LM Studio instance** and refine prompt tuning based on generation quality

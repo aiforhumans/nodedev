@@ -1,0 +1,50 @@
+{
+  "category": "\ud83e\udd16 Xtremetools/\ud83d\udd27 Meta-Workflow",
+  "function": "export_workflow",
+  "inputs": {
+    "required": {
+      "add_metadata": [
+        "BOOLEAN",
+        {
+          "default": true
+        }
+      ],
+      "add_metadata_note": [
+        "BOOLEAN",
+        {
+          "default": true
+        }
+      ],
+      "compact": [
+        "BOOLEAN",
+        {
+          "default": false
+        }
+      ],
+      "indent": [
+        "INT",
+        {
+          "default": 2,
+          "max": 8,
+          "min": 0,
+          "step": 1
+        }
+      ],
+      "workflow_json": [
+        "STRING",
+        {
+          "forceInput": true
+        }
+      ]
+    }
+  },
+  "name": "XtremetoolsWorkflowExporter",
+  "return_names": [
+    "formatted_json",
+    "info"
+  ],
+  "return_types": [
+    "STRING",
+    "STRING"
+  ]
+}

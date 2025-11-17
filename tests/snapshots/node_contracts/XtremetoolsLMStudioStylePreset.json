@@ -1,0 +1,38 @@
+{
+  "category": "\ud83e\udd16 Xtremetools/\ud83e\udd16 LM Studio/\u270d\ufe0f Prompts",
+  "function": "apply_style",
+  "inputs": {
+    "optional": {
+      "custom_addition": [
+        "STRING",
+        {
+          "default": "",
+          "multiline": true
+        }
+      ]
+    },
+    "required": {
+      "style": [
+        [
+          "neutral",
+          "concise",
+          "creative",
+          "technical",
+          "socratic",
+          "analytical",
+          "casual",
+          "step_by_step"
+        ]
+      ]
+    }
+  },
+  "name": "XtremetoolsLMStudioStylePreset",
+  "return_names": [
+    "system_prompt",
+    "info"
+  ],
+  "return_types": [
+    "STRING",
+    "STRING"
+  ]
+}

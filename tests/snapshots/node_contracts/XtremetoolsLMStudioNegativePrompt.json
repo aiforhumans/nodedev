@@ -1,0 +1,42 @@
+{
+  "category": "\ud83e\udd16 Xtremetools/\ud83e\udd16 LM Studio/\u270d\ufe0f Prompts",
+  "function": "build_negative_instruction",
+  "inputs": {
+    "optional": {
+      "avoid_style": [
+        [
+          "none",
+          "verbose",
+          "technical_jargon",
+          "speculation",
+          "personal_opinions"
+        ]
+      ],
+      "strictness": [
+        [
+          "soft",
+          "moderate",
+          "strict"
+        ]
+      ]
+    },
+    "required": {
+      "avoid_topics": [
+        "STRING",
+        {
+          "default": "",
+          "multiline": true
+        }
+      ]
+    }
+  },
+  "name": "XtremetoolsLMStudioNegativePrompt",
+  "return_names": [
+    "system_instruction",
+    "info"
+  ],
+  "return_types": [
+    "STRING",
+    "STRING"
+  ]
+}

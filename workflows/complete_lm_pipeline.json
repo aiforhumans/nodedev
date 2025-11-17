@@ -1,0 +1,323 @@
+{
+  "last_node_id": 13,
+  "last_link_id": 14,
+  "nodes": [
+    {
+      "id": 0,
+      "type": "XtremetoolsLMStudioServerSettings",
+      "pos": [100, 100],
+      "size": [200, 100],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "server_settings",
+          "type": "LM_STUDIO_SERVER",
+          "links": [0]
+        }
+      ],
+      "properties": {},
+      "widgets_values": ["http://localhost:1234", 60]
+    },
+    {
+      "id": 1,
+      "type": "XtremetoolsLMStudioModelSettings",
+      "pos": [100, 250],
+      "size": [200, 100],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "model_settings",
+          "type": "LM_STUDIO_MODEL",
+          "links": [1]
+        }
+      ],
+      "properties": {},
+      "widgets_values": ["phi-3", false]
+    },
+    {
+      "id": 2,
+      "type": "XtremetoolsLMStudioStylePreset",
+      "pos": [350, 100],
+      "size": [200, 100],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "style_prompt",
+          "type": "STRING",
+          "links": [2]
+        }
+      ],
+      "properties": {},
+      "widgets_values": ["technical", "Be concise and precise."]
+    },
+    {
+      "id": 3,
+      "type": "XtremetoolsLMStudioFewShotExamples",
+      "pos": [350, 250],
+      "size": [200, 100],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "few_shot_text",
+          "type": "STRING",
+          "links": [3]
+        }
+      ],
+      "properties": {},
+      "widgets_values": [
+        "<example><input>What is 2+2?</input><output>4</output></example>",
+        "<example><input>What is the capital of France?</input><output>Paris</output></example>",
+        ""
+      ]
+    },
+    {
+      "id": 4,
+      "type": "XtremetoolsLMStudioStructuredOutput",
+      "pos": [350, 400],
+      "size": [200, 100],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "format_instruction",
+          "type": "STRING",
+          "links": [4]
+        }
+      ],
+      "properties": {},
+      "widgets_values": ["json", false, ""]
+    },
+    {
+      "id": 5,
+      "type": "XtremetoolsLMStudioQualityControl",
+      "pos": [600, 100],
+      "size": [200, 100],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "temperature",
+          "type": "FLOAT",
+          "links": [5]
+        },
+        {
+          "name": "max_tokens",
+          "type": "INT",
+          "links": [6]
+        }
+      ],
+      "properties": {},
+      "widgets_values": ["balanced", 0, 0]
+    },
+    {
+      "id": 6,
+      "type": "XtremetoolsLMStudioPromptJoiner",
+      "pos": [600, 250],
+      "size": [200, 100],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "prompt1",
+          "type": "STRING",
+          "link": 2
+        },
+        {
+          "name": "prompt2",
+          "type": "STRING",
+          "link": 3
+        },
+        {
+          "name": "prompt3",
+          "type": "STRING",
+          "link": 4
+        },
+        {
+          "name": "prompt4",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "prompt5",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "prompt6",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "delimiter",
+          "type": "STRING",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "combined_text",
+          "type": "STRING",
+          "links": [7]
+        }
+      ],
+      "properties": {},
+      "widgets_values": ["", "", "", "", "", "", " | "]
+    },
+    {
+      "id": 7,
+      "type": "XtremetoolsLMStudioText",
+      "pos": [850, 100],
+      "size": [250, 150],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "server_settings",
+          "type": "LM_STUDIO_SERVER",
+          "link": 0
+        },
+        {
+          "name": "model_settings",
+          "type": "LM_STUDIO_MODEL",
+          "link": 1
+        },
+        {
+          "name": "user_prompt",
+          "type": "STRING",
+          "link": 7
+        },
+        {
+          "name": "system_prompt",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "temperature",
+          "type": "FLOAT",
+          "link": 5
+        },
+        {
+          "name": "max_tokens",
+          "type": "INT",
+          "link": 6
+        }
+      ],
+      "outputs": [
+        {
+          "name": "generated_text",
+          "type": "STRING",
+          "links": [8]
+        },
+        {
+          "name": "info",
+          "type": "STRING",
+          "links": [9]
+        }
+      ],
+      "properties": {},
+      "widgets_values": ["", "", "", "", 0.7, 256]
+    },
+    {
+      "id": 8,
+      "type": "ShowText|pysssss",
+      "pos": [1150, 100],
+      "size": [300, 100],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "link": 8
+        }
+      ],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": ["Generated Output"]
+    },
+    {
+      "id": 9,
+      "type": "ShowText|pysssss",
+      "pos": [1150, 250],
+      "size": [300, 100],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "link": 9
+        }
+      ],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": ["Generation Info"]
+    },
+    {
+      "id": 10,
+      "type": "Note|pysssss",
+      "pos": [100, 450],
+      "size": [800, 80],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": ["Complete LM Studio Pipeline: Server → Model → Style + Few-Shot + Format → Quality Control → Joiner → LM Text → Output Display"]
+    }
+  ],
+  "groups": [
+    {
+      "title": "Configuration",
+      "bounding": [100, 100, 200, 250],
+      "color": "#3f789e",
+      "font_size": 20
+    },
+    {
+      "title": "Prompt Engineering",
+      "bounding": [350, 100, 200, 300],
+      "color": "#5a7f2f",
+      "font_size": 20
+    },
+    {
+      "title": "Quality & Generation",
+      "bounding": [600, 100, 250, 250],
+      "color": "#8b5a2b",
+      "font_size": 20
+    },
+    {
+      "title": "Output",
+      "bounding": [1150, 100, 300, 250],
+      "color": "#ff7f00",
+      "font_size": 20
+    }
+  ],
+  "config": {},
+  "extra": {
+    "generated_by": "Xtremetools",
+    "generator_version": "1.0",
+    "description": "Complete LM Studio pipeline showcasing all prompt engineering nodes"
+  },
+  "version": 0.4
+}

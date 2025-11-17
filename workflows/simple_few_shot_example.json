@@ -1,0 +1,175 @@
+{
+  "last_node_id": 8,
+  "last_link_id": 8,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "XtremetoolsLMStudioServerSettings",
+      "pos": [100, 100],
+      "size": [320, 120],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "outputs": [
+        {"name": "server_settings", "type": "LM_STUDIO_SERVER", "links": [1]},
+        {"name": "info", "type": "STRING", "links": null}
+      ],
+      "properties": {"Node name for S&R": "XtremetoolsLMStudioServerSettings"},
+      "widgets_values": ["http://localhost:1234", 60]
+    },
+    {
+      "id": 2,
+      "type": "XtremetoolsLMStudioModelSettings",
+      "pos": [100, 260],
+      "size": [320, 100],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "outputs": [
+        {"name": "model_settings", "type": "LM_STUDIO_MODEL", "links": [2]},
+        {"name": "info", "type": "STRING", "links": null}
+      ],
+      "properties": {"Node name for S&R": "XtremetoolsLMStudioModelSettings"},
+      "widgets_values": ["ibm/granite-4-h-tiny", false]
+    },
+    {
+      "id": 3,
+      "type": "XtremetoolsLMStudioStylePreset",
+      "pos": [100, 400],
+      "size": [380, 140],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "outputs": [
+        {"name": "system_prompt", "type": "STRING", "links": [3]},
+        {"name": "info", "type": "STRING", "links": null}
+      ],
+      "properties": {"Node name for S&R": "XtremetoolsLMStudioStylePreset"},
+      "widgets_values": ["concise", ""]
+    },
+    {
+      "id": 4,
+      "type": "XtremetoolsLMStudioFewShotExamples",
+      "pos": [520, 100],
+      "size": [420, 320],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "outputs": [
+        {"name": "examples_section", "type": "STRING", "links": [4]},
+        {"name": "info", "type": "STRING", "links": null}
+      ],
+      "properties": {"Node name for S&R": "XtremetoolsLMStudioFewShotExamples"},
+      "widgets_values": [
+        "Translate to French: Hello",
+        "Bonjour",
+        "Translate to French: Goodbye",
+        "Au revoir",
+        "",
+        "",
+        "Follow these examples:"
+      ]
+    },
+    {
+      "id": 5,
+      "type": "XtremetoolsLMStudioStructuredOutput",
+      "pos": [520, 460],
+      "size": [420, 160],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "outputs": [
+        {"name": "format_instruction", "type": "STRING", "links": [5]},
+        {"name": "info", "type": "STRING", "links": null}
+      ],
+      "properties": {"Node name for S&R": "XtremetoolsLMStudioStructuredOutput"},
+      "widgets_values": ["xml", "", false, "translation"]
+    },
+    {
+      "id": 6,
+      "type": "Prompt Joiner",
+      "pos": [980, 100],
+      "size": [360, 180],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {"name": "text_a", "type": "STRING", "link": 3},
+        {"name": "text_b", "type": "STRING", "link": 4},
+        {"name": "text_c", "type": "STRING", "link": 5}
+      ],
+      "outputs": [
+        {"name": "joined_text", "type": "STRING", "links": [6]},
+        {"name": "info", "type": "STRING", "links": null}
+      ],
+      "properties": {"Node name for S&R": "Prompt Joiner"},
+      "widgets_values": ["\n\n"]
+    },
+    {
+      "id": 7,
+      "type": "XtremetoolsLMStudioText",
+      "pos": [980, 320],
+      "size": [400, 340],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {"name": "server_settings", "type": "LM_STUDIO_SERVER", "link": 1},
+        {"name": "model_settings", "type": "LM_STUDIO_MODEL", "link": 2},
+        {"name": "system_prompt", "type": "STRING", "link": 6}
+      ],
+      "outputs": [
+        {"name": "text", "type": "STRING", "links": [7]},
+        {"name": "info", "type": "STRING", "links": [8]}
+      ],
+      "properties": {"Node name for S&R": "XtremetoolsLMStudioText"},
+      "widgets_values": [
+        "Translate to French: Thank you very much",
+        "",
+        "",
+        "http://localhost:1234",
+        "",
+        0.3,
+        50
+      ]
+    },
+    {
+      "id": 8,
+      "type": "ShowText|pysssss",
+      "pos": [1420, 320],
+      "size": [420, 340],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {"name": "text", "type": "STRING", "link": 7}
+      ],
+      "outputs": [
+        {"name": "STRING", "type": "STRING", "links": null}
+      ],
+      "properties": {"Node name for S&R": "ShowText|pysssss"},
+      "widgets_values": ["Expected: <translation>Merci beaucoup</translation>"]
+    }
+  ],
+  "links": [
+    [1, 1, 0, 7, 0, "LM_STUDIO_SERVER"],
+    [2, 2, 0, 7, 1, "LM_STUDIO_MODEL"],
+    [3, 3, 0, 6, 0, "STRING"],
+    [4, 4, 0, 6, 1, "STRING"],
+    [5, 5, 0, 6, 2, "STRING"],
+    [6, 6, 0, 7, 0, "STRING"],
+    [7, 7, 0, 8, 0, "STRING"],
+    [8, 7, 1, 8, 0, "STRING"]
+  ],
+  "groups": [
+    {
+      "title": "📚 Few-Shot Learning Demo",
+      "bounding": [80, 50, 1780, 640],
+      "color": "#1976d2",
+      "font_size": 28
+    }
+  ],
+  "config": {},
+  "extra": {},
+  "version": 0.4
+}
